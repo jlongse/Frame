@@ -1,1 +1,2892 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhotoBox Generator</title>
 
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 24px;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #fff;
+        color: #222;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    h1 {
+        margin: 0 0 20px;
+        font-size: 28px;
+    }
+
+    h2 {
+        margin: 0 0 14px;
+        font-size: 20px;
+    }
+
+    .panel {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 18px;
+        margin-bottom: 18px;
+        background: #fff;
+    }
+
+    .field {
+        margin-bottom: 14px;
+    }
+
+    .field label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 10px 11px;
+        font: inherit;
+        background: #fff;
+        color: #222;
+    }
+
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    button {
+        border: 1px solid #d2d2d2;
+        border-radius: 6px;
+        padding: 9px 13px;
+        cursor: pointer;
+        font-weight: 600;
+        background: #f7f7f7;
+        color: #333;
+        margin-right: 6px;
+        margin-bottom: 6px;
+        box-shadow: none;
+        transition:
+            background .15s ease,
+            border-color .15s ease,
+            color .15s ease,
+            transform .1s ease;
+    }
+
+    button:hover {
+        background: #ececec;
+        border-color: #bdbdbd;
+    }
+
+    button:active {
+        transform: translateY(1px);
+    }
+
+    button.secondary {
+        background: #f7f7f7;
+        color: #555;
+        border-color: #d2d2d2;
+    }
+
+    button.success {
+        background: #eeeeee;
+        color: #222;
+        border-color: #c8c8c8;
+    }
+
+    button.danger {
+        background: #f7f7f7;
+        color: #555;
+        border-color: #d2d2d2;
+    }
+
+    button.format {
+        background: #f7f7f7;
+        color: #444;
+        border-color: #d2d2d2;
+    }
+
+    .actions {
+        margin-top: 10px;
+    }
+
+    .status {
+        min-height: 20px;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .hint {
+        font-size: 12px;
+        color: #777;
+        margin-top: 5px;
+        line-height: 1.4;
+    }
+
+    #itemsList {
+        min-height: 20px;
+    }
+
+    .item {
+        position: relative;
+        background: #fafafa;
+        border: 1px solid #ddd;
+        border-radius: 9px;
+        padding: 12px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+        transform: scale(1);
+        transition:
+            opacity .15s ease,
+            transform .18s ease,
+            border-color .15s ease,
+            background .15s ease,
+            box-shadow .18s ease;
+    }
+
+    .item:hover {
+        background: #fdfdfd;
+        border-color: #cfcfcf;
+    }
+
+    .item.dragging {
+        opacity: .95;
+        background: #fff;
+        border-color: #999;
+        transform: scale(1.035) translateY(-2px);
+        box-shadow:
+            0 14px 30px rgba(0,0,0,.18),
+            0 3px 8px rgba(0,0,0,.10);
+        z-index: 1000;
+    }
+
+    .item.dragging::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 9px;
+        pointer-events: none;
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,.08);
+    }
+
+    .item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .item-title {
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+
+    .item-description {
+        font-size: 13px;
+        color: #666;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .item-actions {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .item-actions button {
+        margin-bottom: 0;
+        margin-right: 3px;
+        padding: 6px 9px;
+        font-size: 12px;
+    }
+
+    .drag-placeholder {
+        box-sizing: border-box;
+        border: 2px dashed #c7c7c7;
+        border-radius: 9px;
+        background: #f5f5f5;
+        margin-bottom: 8px;
+        position: relative;
+        opacity: .95;
+        transition:
+            height .15s ease,
+            opacity .15s ease;
+    }
+
+    .drag-placeholder::before {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 50%;
+        height: 2px;
+        transform: translateY(-50%);
+        background: #d0d0d0;
+        border-radius: 999px;
+    }
+
+    body.drag-active {
+        user-select: none;
+        -webkit-user-select: none;
+        cursor: grabbing;
+    }
+
+    #output {
+        min-height: 300px;
+        font-family: Consolas, Monaco, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre;
+    }
+
+    .empty {
+        color: #888;
+        font-size: 14px;
+        padding: 8px 0;
+    }
+
+    .two-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    @media (max-width: 750px) {
+        .two-columns {
+            grid-template-columns: 1fr;
+        }
+
+        body {
+            padding: 14px;
+        }
+
+        .item {
+            align-items: flex-start;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>PhotoBox Generator</h1>
+
+    <div class="panel">
+
+        <h2>Añadir elemento</h2>
+
+        <div class="field">
+            <label for="elementType">Tipo de elemento</label>
+            <select id="elementType">
+                <option value="polaroid">Polaroid</option>
+                <option value="sticky">Sticky Note</option>
+                <option value="sticky-fecha">Sticky Note + Fecha</option>
+                <option value="sticky-png">Sticky PNG</option>
+                <option value="ticket">Ticket</option>
+                <option value="png-frame">PNG Frame</option>
+                <option value="diary">Diary Notes</option>
+                <option value="film-strip">Film Strip</option>
+            </select>
+        </div>
+
+        <!-- POLAROID -->
+        <div class="type-fields" id="fields-polaroid">
+
+            <div class="field">
+                <label for="polaroidImage">URL de la imagen</label>
+                <input id="polaroidImage" type="text" placeholder="https://...">
+            </div>
+
+            <div class="field">
+                <label for="polaroidAlt">ALT de la imagen</label>
+                <input id="polaroidAlt" type="text" placeholder="Descripción de la imagen">
+            </div>
+
+            <div class="field">
+                <label for="polaroidText">Texto de la Polaroid</label>
+                <input id="polaroidText" type="text" placeholder="Texto">
+                <div class="hint">
+                    La Polaroid lleva una sola línea de texto.
+                </div>
+            </div>
+
+        </div>
+
+        <!-- STICKY -->
+        <div class="type-fields hidden" id="fields-sticky">
+
+            <div class="field">
+                <label for="stickyText">Texto del Sticky Note</label>
+                <textarea id="stickyText" placeholder="Texto"></textarea>
+            </div>
+
+        </div>
+
+        <!-- STICKY FECHA -->
+        <div class="type-fields hidden" id="fields-sticky-fecha">
+
+            <div class="field">
+                <label for="stickyFechaText">Texto del Sticky Note</label>
+                <textarea id="stickyFechaText" placeholder="Texto"></textarea>
+            </div>
+
+            <div class="field">
+                <label for="stickyFechaDate">Fecha</label>
+                <input id="stickyFechaDate" type="text" placeholder="01/01/2026">
+            </div>
+
+        </div>
+
+        <!-- STICKY PNG -->
+        <div class="type-fields hidden" id="fields-sticky-png">
+
+            <div class="field">
+                <label for="stickyPngImage">URL del PNG</label>
+                <input id="stickyPngImage" type="text" placeholder="https://...">
+            </div>
+
+            <div class="field">
+                <label for="stickyPngAlt">ALT del PNG</label>
+                <input id="stickyPngAlt" type="text" placeholder="Descripción">
+            </div>
+
+        </div>
+
+        <!-- TICKET -->
+        <div class="type-fields hidden" id="fields-ticket">
+
+            <div class="field">
+                <label for="ticketImage">URL de la imagen</label>
+                <input id="ticketImage" type="text" placeholder="https://...">
+            </div>
+
+            <div class="field">
+                <label for="ticketAlt">ALT de la imagen</label>
+                <input id="ticketAlt" type="text" placeholder="Descripción">
+            </div>
+
+        </div>
+
+        <!-- PNG FRAME -->
+        <div class="type-fields hidden" id="fields-png-frame">
+
+            <div class="field">
+                <label for="pngFrameImage">URL de la imagen</label>
+                <input id="pngFrameImage" type="text" placeholder="https://...">
+            </div>
+
+            <div class="field">
+                <label for="pngFrameAlt">ALT de la imagen</label>
+                <input id="pngFrameAlt" type="text" placeholder="Descripción">
+            </div>
+
+            <div class="field">
+                <label for="pngFrameScale">Escala</label>
+                <input id="pngFrameScale" type="number" step="0.1" value="1.4">
+            </div>
+
+        </div>
+
+        <!-- DIARY -->
+        <div class="type-fields hidden" id="fields-diary">
+
+            <div class="field">
+                <label for="diaryText">Contenido del Diary Notes</label>
+                <textarea
+                    id="diaryText"
+                    placeholder="Escribe cada párrafo en una línea diferente. Escribe ... o … en una línea para crear una separación."
+                ></textarea>
+
+                <div class="hint">
+                    Una línea con <strong>...</strong> o <strong>…</strong>
+                    se convierte directamente en <strong>&lt;hr&gt;</strong>.
+                    El &lt;hr&gt; queda fuera de los párrafos.
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FILM STRIP -->
+        <div class="type-fields hidden" id="fields-film-strip">
+
+            <div class="field">
+                <label for="filmName">Nombre / comentario del Film Strip</label>
+                <input id="filmName" type="text" placeholder="Nombre o comentario">
+            </div>
+
+            <div class="field">
+                <label for="filmImage1">Imagen 1</label>
+                <input id="filmImage1" type="text" placeholder="https://...">
+            </div>
+
+            <div class="field">
+                <label for="filmAlt1">ALT 1</label>
+                <input id="filmAlt1" type="text" placeholder="Descripción">
+            </div>
+
+            <div class="field">
+                <label for="filmImage2">Imagen 2</label>
+                <input id="filmImage2" type="text" placeholder="https://...">
+            </div>
+
+            <div class="field">
+                <label for="filmAlt2">ALT 2</label>
+                <input id="filmAlt2" type="text" placeholder="Descripción">
+            </div>
+
+            <div class="field">
+                <label for="filmImage3">Imagen 3</label>
+                <input id="filmImage3" type="text" placeholder="https://...">
+            </div>
+
+            <div class="field">
+                <label for="filmAlt3">ALT 3</label>
+                <input id="filmAlt3" type="text" placeholder="Descripción">
+            </div>
+
+        </div>
+
+        <div class="actions">
+            <button id="addButton" class="success">Añadir elemento</button>
+            <button id="cancelEditButton" class="secondary hidden">Cancelar edición</button>
+        </div>
+
+        <div id="formStatus" class="status"></div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <h2>Elementos activos</h2>
+
+        <div class="hint">
+            Arrastra los elementos para cambiar su orden.
+        </div>
+
+        <div id="itemsList"></div>
+
+        <div class="actions">
+            <button id="resetButton" class="danger">Borrar todo</button>
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <h2>HTML generado</h2>
+
+        <textarea id="output" readonly></textarea>
+
+        <div class="actions">
+            <button id="copyButton" class="success">Copiar HTML</button>
+            <button id="downloadButton" class="secondary">Descargar HTML</button>
+        </div>
+
+        <div id="outputStatus" class="status"></div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <h2>Importar HTML existente</h2>
+
+        <textarea
+            id="importInput"
+            placeholder="Pega aquí un documento HTML, una sección .tiny-photos, un <ul> o elementos <li>..."
+        ></textarea>
+
+        <div class="actions">
+            <button id="importButton" class="success">Importar HTML</button>
+        </div>
+
+        <div id="importStatus" class="status"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+(function() {
+
+    "use strict";
+
+    const STORAGE_KEY = "photobox-generator-items-v4";
+
+    let items = [];
+    let editingIndex = -1;
+
+    let dragState = null;
+
+
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+
+    function normalizeLineEndings(value) {
+        return String(value ?? "")
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n");
+    }
+
+
+    /*
+     * ESCAPADO DE TEXTO
+     *
+     * Importante:
+     * Aquí NO se escapan comillas ni apostrofes.
+     *
+     * Así:
+     * don't
+     *
+     * sigue siendo:
+     * don't
+     *
+     * y no:
+     * Don&#39;t
+     */
+    function escapeHtmlText(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+
+    /*
+     * ESCAPADO DE ATRIBUTOS
+     */
+    function escapeHtmlAttribute(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+
+    /*
+     * Primera letra de CADA palabra en mayúscula.
+     *
+     * Se utiliza SOLO para:
+     * - Polaroid
+     * - Sticky
+     * - Sticky-fecha
+     *
+     * Diary NO pasa nunca por aquí.
+     */
+    function capitalizeWords(value) {
+        return String(value ?? "")
+            .toLocaleLowerCase("es-ES")
+            .replace(
+                /(^|[\s\u00A0]+)([^\s\u00A0])/g,
+                function(match, separator, firstLetter) {
+                    return (
+                        separator +
+                        firstLetter.toLocaleUpperCase("es-ES")
+                    );
+                }
+            );
+    }
+
+
+    /*
+     * ============================================================
+     * DIARY NOTES
+     * ============================================================
+     *
+     * Esta parte es deliberadamente independiente.
+     *
+     * Una línea:
+     *
+     * ...
+     *
+     * o:
+     *
+     * …
+     *
+     * se convierte en:
+     *
+     * <hr>
+     *
+     * NUNCA en:
+     *
+     * <p>...</p>
+     * <p>…</p>
+     *
+     * El <hr> es SIEMPRE un elemento independiente.
+     */
+
+
+    function normalizeDiaryLine(line) {
+        return String(line ?? "")
+            .replace(/[\uFEFF\u200B\u200C\u200D\u2060]/g, "")
+            .replace(/\u00A0/g, " ")
+            .trim();
+    }
+
+
+    function isDiarySeparator(line) {
+        const normalized = normalizeDiaryLine(line);
+
+        return (
+            normalized === "..." ||
+            normalized === "…" ||
+            normalized === "⋯"
+        );
+    }
+
+
+    function formatDiaryToHtml(text) {
+
+        const lines = normalizeLineEndings(text).split("\n");
+        const output = [];
+
+        lines.forEach(function(line) {
+
+            const normalized = normalizeDiaryLine(line);
+
+
+            /*
+             * PRIMERO se comprueba el separador.
+             *
+             * Así jamás puede caer en la creación de <p>.
+             */
+            if (isDiarySeparator(normalized)) {
+                output.push("<hr>");
+                return;
+            }
+
+
+            /*
+             * Las líneas vacías no generan HTML.
+             */
+            if (!normalized) {
+                return;
+            }
+
+
+            /*
+             * Texto normal:
+             * UN párrafo.
+             */
+            output.push(
+                "<p>" +
+                escapeHtmlText(normalized) +
+                "</p>"
+            );
+        });
+
+
+        return output.join("\n");
+    }
+
+
+    function importDiary(li) {
+
+        const directChildren = Array.from(li.children);
+
+        const hasDiaryStructure = directChildren.some(function(element) {
+            const tag = element.tagName.toLowerCase();
+
+            return tag === "p" || tag === "hr";
+        });
+
+
+        if (!hasDiaryStructure) {
+            return null;
+        }
+
+
+        const parts = [];
+
+
+        directChildren.forEach(function(element) {
+
+            const tag = element.tagName.toLowerCase();
+
+
+            if (tag === "p") {
+
+                const clone = element.cloneNode(true);
+
+                clone.querySelectorAll("br").forEach(function(br) {
+                    br.replaceWith(
+                        document.createTextNode("\n")
+                    );
+                });
+
+
+                const text = clone.textContent.trim();
+
+
+                if (text) {
+
+                    /*
+                     * Si alguien importa un Diary antiguo que tenía:
+                     *
+                     * <p>…</p>
+                     *
+                     * lo convertimos de nuevo a:
+                     *
+                     * ...
+                     *
+                     * para que al volver a generar se arregle.
+                     */
+                    if (isDiarySeparator(text)) {
+                        parts.push("...");
+                    } else {
+                        parts.push(text);
+                    }
+                }
+            }
+
+
+            if (tag === "hr") {
+                parts.push("...");
+            }
+
+        });
+
+
+        if (!parts.length) {
+            return null;
+        }
+
+
+        return {
+            type: "diary",
+            text: parts.join("\n")
+        };
+    }
+
+
+    function updateTypeFields() {
+
+        const selectedType = $("elementType").value;
+
+        const allFieldTypes = [
+            "polaroid",
+            "sticky",
+            "sticky-fecha",
+            "sticky-png",
+            "ticket",
+            "png-frame",
+            "diary",
+            "film-strip"
+        ];
+
+
+        allFieldTypes.forEach(function(type) {
+
+            const group = $("fields-" + type);
+
+            if (!group) {
+                return;
+            }
+
+            group.classList.toggle(
+                "hidden",
+                type !== selectedType
+            );
+        });
+    }
+
+
+    function getFormData() {
+
+        const type = $("elementType").value;
+
+
+        if (type === "polaroid") {
+
+            return {
+                type: "polaroid",
+                image: $("polaroidImage").value.trim(),
+                alt: $("polaroidAlt").value.trim(),
+                text: $("polaroidText").value
+            };
+        }
+
+
+        if (type === "sticky") {
+
+            return {
+                type: "sticky",
+                text: $("stickyText").value
+            };
+        }
+
+
+        if (type === "sticky-fecha") {
+
+            return {
+                type: "sticky-fecha",
+                text: $("stickyFechaText").value,
+                date: $("stickyFechaDate").value
+            };
+        }
+
+
+        if (type === "sticky-png") {
+
+            return {
+                type: "sticky-png",
+                image: $("stickyPngImage").value.trim(),
+                alt: $("stickyPngAlt").value
+            };
+        }
+
+
+        if (type === "ticket") {
+
+            return {
+                type: "ticket",
+                image: $("ticketImage").value.trim(),
+                alt: $("ticketAlt").value
+            };
+        }
+
+
+        if (type === "png-frame") {
+
+            return {
+                type: "png-frame",
+                image: $("pngFrameImage").value.trim(),
+                alt: $("pngFrameAlt").value,
+                scale: $("pngFrameScale").value || "1.4"
+            };
+        }
+
+
+        if (type === "diary") {
+
+            return {
+                type: "diary",
+                text: $("diaryText").value
+            };
+        }
+
+
+        if (type === "film-strip") {
+
+            return {
+                type: "film-strip",
+                name: $("filmName").value,
+                images: [
+                    {
+                        image: $("filmImage1").value.trim(),
+                        alt: $("filmAlt1").value
+                    },
+                    {
+                        image: $("filmImage2").value.trim(),
+                        alt: $("filmAlt2").value
+                    },
+                    {
+                        image: $("filmImage3").value.trim(),
+                        alt: $("filmAlt3").value
+                    }
+                ]
+            };
+        }
+
+
+        return null;
+    }
+
+
+    function clearForm() {
+
+        $("polaroidImage").value = "";
+        $("polaroidAlt").value = "";
+        $("polaroidText").value = "";
+
+        $("stickyText").value = "";
+
+        $("stickyFechaText").value = "";
+        $("stickyFechaDate").value = "";
+
+        $("stickyPngImage").value = "";
+        $("stickyPngAlt").value = "";
+
+        $("ticketImage").value = "";
+        $("ticketAlt").value = "";
+
+        $("pngFrameImage").value = "";
+        $("pngFrameAlt").value = "";
+        $("pngFrameScale").value = "1.4";
+
+        $("diaryText").value = "";
+
+        $("filmName").value = "";
+        $("filmImage1").value = "";
+        $("filmAlt1").value = "";
+        $("filmImage2").value = "";
+        $("filmAlt2").value = "";
+        $("filmImage3").value = "";
+        $("filmAlt3").value = "";
+
+        editingIndex = -1;
+
+        $("addButton").textContent = "Añadir elemento";
+        $("cancelEditButton").classList.add("hidden");
+
+        updateTypeFields();
+    }
+
+
+    function loadItemIntoForm(item) {
+
+        $("elementType").value = item.type;
+
+
+        clearForm();
+
+
+        $("elementType").value = item.type;
+
+
+        if (item.type === "polaroid") {
+
+            $("polaroidImage").value = item.image || "";
+            $("polaroidAlt").value = item.alt || "";
+            $("polaroidText").value = item.text || "";
+        }
+
+
+        if (item.type === "sticky") {
+            $("stickyText").value = item.text || "";
+        }
+
+
+        if (item.type === "sticky-fecha") {
+            $("stickyFechaText").value = item.text || "";
+            $("stickyFechaDate").value = item.date || "";
+        }
+
+
+        if (item.type === "sticky-png") {
+            $("stickyPngImage").value = item.image || "";
+            $("stickyPngAlt").value = item.alt || "";
+        }
+
+
+        if (item.type === "ticket") {
+            $("ticketImage").value = item.image || "";
+            $("ticketAlt").value = item.alt || "";
+        }
+
+
+        if (item.type === "png-frame") {
+            $("pngFrameImage").value = item.image || "";
+            $("pngFrameAlt").value = item.alt || "";
+            $("pngFrameScale").value = item.scale || "1.4";
+        }
+
+
+        if (item.type === "diary") {
+            $("diaryText").value = item.text || "";
+        }
+
+
+        if (item.type === "film-strip") {
+
+            $("filmName").value = item.name || "";
+
+            const images = item.images || [];
+
+            $("filmImage1").value =
+                images[0]?.image || "";
+
+            $("filmAlt1").value =
+                images[0]?.alt || "";
+
+            $("filmImage2").value =
+                images[1]?.image || "";
+
+            $("filmAlt2").value =
+                images[1]?.alt || "";
+
+            $("filmImage3").value =
+                images[2]?.image || "";
+
+            $("filmAlt3").value =
+                images[2]?.alt || "";
+        }
+
+
+        updateTypeFields();
+
+        $("addButton").textContent = "Guardar cambios";
+        $("cancelEditButton").classList.remove("hidden");
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }
+
+
+    function getItemDescription(item) {
+
+        if (item.type === "sticky-png") {
+            return item.alt || "(sin ALT)";
+        }
+
+
+        if (item.type === "polaroid") {
+            return item.text || "(sin texto)";
+        }
+
+
+        if (item.type === "sticky") {
+            return item.text || "(sin texto)";
+        }
+
+
+        if (item.type === "sticky-fecha") {
+            return item.date || "(sin fecha)";
+        }
+
+
+        if (item.type === "ticket") {
+            return item.alt || "(sin ALT)";
+        }
+
+
+        if (item.type === "png-frame") {
+            return item.alt || "(sin ALT)";
+        }
+
+
+        if (item.type === "diary") {
+
+            const firstText = normalizeLineEndings(item.text || "")
+                .split("\n")
+                .map(normalizeDiaryLine)
+                .find(function(line) {
+                    return line && !isDiarySeparator(line);
+                });
+
+            return firstText || "(vacío)";
+        }
+
+
+        if (item.type === "film-strip") {
+            return item.name || "Sin nombre";
+        }
+
+
+        return "";
+    }
+
+
+    function getItemTitle(item) {
+
+        const names = {
+            "polaroid": "Polaroid",
+            "sticky": "Sticky Note",
+            "sticky-fecha": "Sticky Note + Fecha",
+            "sticky-png": "Sticky PNG",
+            "ticket": "Ticket",
+            "png-frame": "PNG Frame",
+            "diary": "Diary Notes",
+            "film-strip": "Film Strip"
+        };
+
+        return names[item.type] || item.type;
+    }
+
+
+    function elementToHtml(item) {
+
+        if (item.type === "polaroid") {
+
+            const text = capitalizeWords(item.text || "");
+
+            return (
+                "<li>\n" +
+                "    <p><img src=\"" +
+                escapeHtmlAttribute(item.image) +
+                "\" alt=\"" +
+                escapeHtmlAttribute(item.alt) +
+                "\"></p>\n" +
+                "    <ul><li>" +
+                escapeHtmlText(text) +
+                "</li></ul>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "sticky") {
+
+            const text = capitalizeWords(item.text || "");
+
+            return (
+                "<li>\n" +
+                "    <p>" +
+                escapeHtmlText(text) +
+                "</p>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "sticky-fecha") {
+
+            const text = capitalizeWords(item.text || "");
+
+            return (
+                "<li>\n" +
+                "    <p>" +
+                escapeHtmlText(text) +
+                "</p>\n" +
+                "    <ul><li>" +
+                escapeHtmlText(item.date || "") +
+                "</li></ul>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "sticky-png") {
+
+            return (
+                "<li>\n" +
+                "    <img src=\"" +
+                escapeHtmlAttribute(item.image) +
+                "\" class=\"sticky-drawing\" alt=\"" +
+                escapeHtmlAttribute(item.alt) +
+                "\">\n" +
+                "    <p></p>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "ticket") {
+
+            return (
+                "<li class=\"ticket-frame\">\n" +
+                "    <img src=\"" +
+                escapeHtmlAttribute(item.image) +
+                "\" alt=\"" +
+                escapeHtmlAttribute(item.alt) +
+                "\">\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "png-frame") {
+
+            return (
+                "<li class=\"png-frame\" style=\"--png-scale: " +
+                escapeHtmlAttribute(item.scale || "1.4") +
+                ";\">\n" +
+                "    <img src=\"" +
+                escapeHtmlAttribute(item.image) +
+                "\" alt=\"" +
+                escapeHtmlAttribute(item.alt) +
+                "\">\n" +
+                "</li>"
+            );
+        }
+
+
+        /*
+         * ========================================================
+         * DIARY
+         * ========================================================
+         *
+         * IMPORTANTE:
+         *
+         * NO hacemos aquí ningún map genérico que convierta
+         * todas las líneas en <p>.
+         *
+         * formatDiaryToHtml() decide:
+         *
+         * texto  -> <p>texto</p>
+         * ...    -> <hr>
+         *
+         * El <hr> queda completamente fuera del <p>.
+         */
+        if (item.type === "diary") {
+
+            const diaryContent = formatDiaryToHtml(
+                item.text || ""
+            );
+
+
+            return (
+                "<li>\n" +
+                "    <img src=\"data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=\" alt=\"Diario\"" +
+                (diaryContent
+                    ? "\n" +
+                      diaryContent
+                          .split("\n")
+                          .map(function(line) {
+                              return "    " + line;
+                          })
+                          .join("\n")
+                    : ""
+                ) +
+                "\n</li>"
+            );
+        }
+
+
+        if (item.type === "film-strip") {
+
+            const images = item.images || [];
+
+            const frames = images
+                .filter(function(image) {
+                    return image.image;
+                })
+                .map(function(image) {
+
+                    return (
+                        "    <div class=\"film-frame\">\n" +
+                        "        <img src=\"" +
+                        escapeHtmlAttribute(image.image) +
+                        "\" alt=\"" +
+                        escapeHtmlAttribute(image.alt) +
+                        "\">\n" +
+                        "    </div>"
+                    );
+                })
+                .join("\n");
+
+
+            return (
+                "<li class=\"film-strip\">\n" +
+                frames +
+                "\n</li>"
+            );
+        }
+
+
+        return "<li></li>";
+    }
+
+
+    function generateOutput() {
+
+        const html =
+            "<section class=\"tiny-photos\">\n" +
+            "<ul>\n" +
+            items.map(function(item) {
+                return elementToHtml(item);
+            }).join("\n") +
+            "\n</ul>\n" +
+            "</section>";
+
+
+        $("output").value = html;
+    }
+
+
+    function saveItems() {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(items)
+        );
+    }
+
+
+    function loadItems() {
+
+        try {
+
+            const stored =
+                localStorage.getItem(STORAGE_KEY);
+
+            if (!stored) {
+                items = [];
+                return;
+            }
+
+            const parsed = JSON.parse(stored);
+
+            items = Array.isArray(parsed)
+                ? parsed
+                : [];
+
+        } catch (error) {
+
+            items = [];
+        }
+    }
+
+
+    function renderItems() {
+
+        const list = $("itemsList");
+
+        list.innerHTML = "";
+
+
+        if (!items.length) {
+
+            const empty = document.createElement("div");
+
+            empty.className = "empty";
+            empty.textContent =
+                "No hay elementos añadidos.";
+
+            list.appendChild(empty);
+
+            return;
+        }
+
+
+        items.forEach(function(item, index) {
+
+            const row = document.createElement("div");
+
+            row.className = "item";
+            row.dataset.index = String(index);
+            row._item = item;
+
+
+            const info = document.createElement("div");
+
+            info.className = "item-info";
+
+
+            const title = document.createElement("div");
+
+            title.className = "item-title";
+            title.textContent =
+                (index + 1) + ". " + getItemTitle(item);
+
+
+            const description =
+                document.createElement("div");
+
+            description.className = "item-description";
+            description.textContent =
+                getItemDescription(item);
+
+
+            info.appendChild(title);
+            info.appendChild(description);
+
+
+            const actions =
+                document.createElement("div");
+
+            actions.className = "item-actions";
+
+
+            const up =
+                document.createElement("button");
+
+            up.type = "button";
+            up.textContent = "↑";
+            up.title = "Subir";
+
+
+            const down =
+                document.createElement("button");
+
+            down.type = "button";
+            down.textContent = "↓";
+            down.title = "Bajar";
+
+
+            const edit =
+                document.createElement("button");
+
+            edit.type = "button";
+            edit.textContent = "Editar";
+
+
+            const duplicate =
+                document.createElement("button");
+
+            duplicate.type = "button";
+            duplicate.textContent = "Duplicar";
+
+
+            const remove =
+                document.createElement("button");
+
+            remove.type = "button";
+            remove.textContent = "Eliminar";
+
+
+            up.addEventListener("click", function(event) {
+                event.stopPropagation();
+
+                const currentItem = row._item;
+                const currentIndex =
+                    items.indexOf(currentItem);
+
+                if (currentIndex > 0) {
+
+                    const temp =
+                        items[currentIndex - 1];
+
+                    items[currentIndex - 1] =
+                        items[currentIndex];
+
+                    items[currentIndex] =
+                        temp;
+
+                    saveItems();
+                    renderItems();
+                    generateOutput();
+                }
+            });
+
+
+            down.addEventListener("click", function(event) {
+                event.stopPropagation();
+
+                const currentItem = row._item;
+                const currentIndex =
+                    items.indexOf(currentItem);
+
+                if (
+                    currentIndex >= 0 &&
+                    currentIndex < items.length - 1
+                ) {
+
+                    const temp =
+                        items[currentIndex + 1];
+
+                    items[currentIndex + 1] =
+                        items[currentIndex];
+
+                    items[currentIndex] =
+                        temp;
+
+                    saveItems();
+                    renderItems();
+                    generateOutput();
+                }
+            });
+
+
+            edit.addEventListener("click", function(event) {
+                event.stopPropagation();
+
+                const currentItem = row._item;
+
+                editingIndex =
+                    items.indexOf(currentItem);
+
+                if (editingIndex < 0) {
+                    return;
+                }
+
+                loadItemIntoForm(currentItem);
+
+                $("addButton").textContent =
+                    "Guardar cambios";
+
+                $("cancelEditButton")
+                    .classList.remove("hidden");
+
+                setStatus(
+                    "formStatus",
+                    "Editando elemento."
+                );
+            });
+
+
+            duplicate.addEventListener("click", function(event) {
+                event.stopPropagation();
+
+                const currentItem = row._item;
+                const currentIndex =
+                    items.indexOf(currentItem);
+
+                if (currentIndex < 0) {
+                    return;
+                }
+
+                const copy =
+                    JSON.parse(
+                        JSON.stringify(currentItem)
+                    );
+
+                items.splice(
+                    currentIndex + 1,
+                    0,
+                    copy
+                );
+
+                saveItems();
+                renderItems();
+                generateOutput();
+            });
+
+
+            remove.addEventListener("click", function(event) {
+                event.stopPropagation();
+
+                const currentItem = row._item;
+                const currentIndex =
+                    items.indexOf(currentItem);
+
+                if (currentIndex < 0) {
+                    return;
+                }
+
+                items.splice(currentIndex, 1);
+
+                saveItems();
+                renderItems();
+                generateOutput();
+            });
+
+
+            actions.appendChild(up);
+            actions.appendChild(down);
+            actions.appendChild(edit);
+            actions.appendChild(duplicate);
+            actions.appendChild(remove);
+
+
+            row.appendChild(info);
+            row.appendChild(actions);
+
+
+            setupDrag(row);
+
+            list.appendChild(row);
+        });
+    }
+
+
+    function setStatus(id, message) {
+        $(id).textContent = message || "";
+    }
+
+
+    /*
+     * ============================================================
+     * DRAG & DROP
+     * ============================================================
+     */
+
+    function setupDrag(row) {
+
+        row.addEventListener(
+            "pointerdown",
+            function(event) {
+
+                if (event.button !== 0) {
+                    return;
+                }
+
+
+                if (
+                    event.target.closest("button") ||
+                    event.target.closest("input") ||
+                    event.target.closest("textarea") ||
+                    event.target.closest("select")
+                ) {
+                    return;
+                }
+
+
+                const rect =
+                    row.getBoundingClientRect();
+
+
+                dragState = {
+                    row: row,
+                    pointerId: event.pointerId,
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    offsetX: event.clientX - rect.left,
+                    offsetY: event.clientY - rect.top,
+                    originalNextSibling:
+                        row.nextElementSibling,
+                    placeholder: null,
+                    dragging: false
+                };
+
+
+                row.setPointerCapture(event.pointerId);
+            }
+        );
+
+
+        row.addEventListener(
+            "pointermove",
+            function(event) {
+
+                if (!dragState) {
+                    return;
+                }
+
+
+                if (
+                    event.pointerId !==
+                    dragState.pointerId
+                ) {
+                    return;
+                }
+
+
+                const dx =
+                    event.clientX -
+                    dragState.startX;
+
+                const dy =
+                    event.clientY -
+                    dragState.startY;
+
+
+                if (!dragState.dragging) {
+
+                    if (
+                        Math.sqrt(dx * dx + dy * dy) < 5
+                    ) {
+                        return;
+                    }
+
+
+                    startDragging(
+                        dragState,
+                        event
+                    );
+                }
+
+
+                moveDragging(
+                    dragState,
+                    event
+                );
+            }
+        );
+
+
+        row.addEventListener(
+            "pointerup",
+            function(event) {
+
+                if (!dragState) {
+                    return;
+                }
+
+
+                if (
+                    event.pointerId !==
+                    dragState.pointerId
+                ) {
+                    return;
+                }
+
+
+                finishDragging(dragState);
+
+                dragState = null;
+            }
+        );
+
+
+        row.addEventListener(
+            "pointercancel",
+            function() {
+
+                if (!dragState) {
+                    return;
+                }
+
+                cancelDragging(dragState);
+
+                dragState = null;
+            }
+        );
+    }
+
+
+    function startDragging(state, event) {
+
+        state.dragging = true;
+
+        const row = state.row;
+
+        const rect =
+            row.getBoundingClientRect();
+
+
+        const placeholder =
+            document.createElement("div");
+
+        placeholder.className =
+            "drag-placeholder";
+
+        placeholder.style.height =
+            rect.height + "px";
+
+
+        state.placeholder =
+            placeholder;
+
+
+        row.parentNode.insertBefore(
+            placeholder,
+            row.nextSibling
+        );
+
+
+        row.classList.add("dragging");
+
+        document.body.classList.add(
+            "drag-active"
+        );
+
+
+        row.style.position = "fixed";
+        row.style.left =
+            (event.clientX - state.offsetX) + "px";
+        row.style.top =
+            (event.clientY - state.offsetY) + "px";
+        row.style.width =
+            rect.width + "px";
+        row.style.margin = "0";
+        row.style.pointerEvents = "none";
+
+
+        updatePlaceholder(
+            event.clientY,
+            state
+        );
+    }
+
+
+    function moveDragging(state, event) {
+
+        const row = state.row;
+
+        row.style.left =
+            (event.clientX - state.offsetX) + "px";
+
+        row.style.top =
+            (event.clientY - state.offsetY) + "px";
+
+
+        updatePlaceholder(
+            event.clientY,
+            state
+        );
+    }
+
+
+    function updatePlaceholder(clientY, state) {
+
+        const list = $("itemsList");
+        const placeholder = state.placeholder;
+
+        if (!placeholder) {
+            return;
+        }
+
+
+        const rows =
+            Array.from(
+                list.querySelectorAll(".item")
+            ).filter(function(row) {
+                return row !== state.row;
+            });
+
+
+        let inserted = false;
+
+
+        for (const row of rows) {
+
+            const rect =
+                row.getBoundingClientRect();
+
+            const midpoint =
+                rect.top + rect.height / 2;
+
+
+            if (clientY < midpoint) {
+
+                if (
+                    placeholder !==
+                    row.previousElementSibling
+                ) {
+
+                    const firstRects =
+                        rows.map(function(r) {
+                            return [
+                                r,
+                                r.getBoundingClientRect().top
+                            ];
+                        });
+
+
+                    row.parentNode.insertBefore(
+                        placeholder,
+                        row
+                    );
+
+
+                    animateRows(
+                        firstRects
+                    );
+                }
+
+
+                inserted = true;
+                break;
+            }
+        }
+
+
+        if (!inserted) {
+
+            const lastRow =
+                rows[rows.length - 1];
+
+            if (lastRow) {
+
+                if (
+                    lastRow.nextElementSibling !==
+                    placeholder
+                ) {
+
+                    const firstRects =
+                        rows.map(function(r) {
+                            return [
+                                r,
+                                r.getBoundingClientRect().top
+                            ];
+                        });
+
+
+                    lastRow.parentNode.insertBefore(
+                        placeholder,
+                        lastRow.nextSibling
+                    );
+
+
+                    animateRows(
+                        firstRects
+                    );
+                }
+
+            } else {
+
+                list.appendChild(
+                    placeholder
+                );
+            }
+        }
+    }
+
+
+    function animateRows(firstRects) {
+
+        firstRects.forEach(function(pair) {
+
+            const row = pair[0];
+            const oldTop = pair[1];
+
+            const newTop =
+                row.getBoundingClientRect().top;
+
+            const delta =
+                oldTop - newTop;
+
+
+            if (!delta) {
+                return;
+            }
+
+
+            row.animate(
+                [
+                    {
+                        transform:
+                            "translateY(" +
+                            delta +
+                            "px)"
+                    },
+                    {
+                        transform:
+                            "translateY(0)"
+                    }
+                ],
+                {
+                    duration: 160,
+                    easing: "cubic-bezier(.2,.8,.2,1)"
+                }
+            );
+        });
+    }
+
+
+    function finishDragging(state) {
+
+        if (!state.dragging) {
+            return;
+        }
+
+
+        const row = state.row;
+        const placeholder = state.placeholder;
+
+
+        if (!placeholder) {
+            cancelDragging(state);
+            return;
+        }
+
+
+        /*
+         * El hueco que estamos viendo es la autoridad.
+         *
+         * NO volvemos a calcular la posición aquí.
+         */
+        const targetRect =
+            placeholder.getBoundingClientRect();
+
+        const currentRect =
+            row.getBoundingClientRect();
+
+
+        /*
+         * Colocamos físicamente el elemento
+         * exactamente donde estaba el hueco.
+         */
+        placeholder.replaceWith(row);
+
+
+        const deltaX =
+            targetRect.left -
+            currentRect.left;
+
+        const deltaY =
+            targetRect.top -
+            currentRect.top;
+
+
+        row.animate(
+            [
+                {
+                    transform:
+                        "translate(" +
+                        deltaX +
+                        "px, " +
+                        deltaY +
+                        "px) scale(1.035) translateY(-2px)"
+                },
+                {
+                    transform:
+                        "scale(1.035) translateY(-2px)"
+                }
+            ],
+            {
+                duration: 220,
+                easing: "cubic-bezier(.2,.8,.2,1)"
+            }
+        );
+
+
+        /*
+         * Reconstruimos el array a partir del DOM.
+         */
+        const domRows =
+            Array.from(
+                $("itemsList").querySelectorAll(".item")
+            );
+
+
+        items =
+            domRows.map(function(domRow) {
+                return domRow._item;
+            });
+
+
+        saveItems();
+        generateOutput();
+
+
+        setTimeout(function() {
+
+            row.classList.remove("dragging");
+
+            row.style.position = "";
+            row.style.left = "";
+            row.style.top = "";
+            row.style.width = "";
+            row.style.margin = "";
+            row.style.pointerEvents = "";
+
+            document.body.classList.remove(
+                "drag-active"
+            );
+
+            renderItems();
+            saveItems();
+            generateOutput();
+
+        }, 230);
+    }
+
+
+    function cancelDragging(state) {
+
+        const row = state.row;
+        const placeholder = state.placeholder;
+
+
+        if (
+            placeholder &&
+            placeholder.parentNode
+        ) {
+
+            placeholder.remove();
+        }
+
+
+        if (
+            state.originalNextSibling &&
+            state.originalNextSibling.parentNode
+        ) {
+
+            state.originalNextSibling.parentNode.insertBefore(
+                row,
+                state.originalNextSibling
+            );
+
+        } else {
+
+            $("itemsList").appendChild(row);
+        }
+
+
+        row.classList.remove("dragging");
+
+        row.style.position = "";
+        row.style.left = "";
+        row.style.top = "";
+        row.style.width = "";
+        row.style.margin = "";
+        row.style.pointerEvents = "";
+
+        document.body.classList.remove(
+            "drag-active"
+        );
+    }
+
+
+    window.addEventListener(
+        "blur",
+        function() {
+
+            if (!dragState) {
+                return;
+            }
+
+            cancelDragging(dragState);
+
+            dragState = null;
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * IMPORTACIÓN
+     * ============================================================
+     */
+
+    function findTinyPhotosList(doc) {
+
+        const section =
+            doc.querySelector(
+                "section.tiny-photos"
+            );
+
+
+        if (section) {
+
+            const directUl =
+                Array.from(section.children)
+                    .find(function(element) {
+                        return element.tagName
+                            .toLowerCase() === "ul";
+                    });
+
+
+            if (directUl) {
+                return directUl;
+            }
+
+
+            const descendantUl =
+                section.querySelector("ul");
+
+
+            if (descendantUl) {
+                return descendantUl;
+            }
+        }
+
+
+        const firstUl =
+            doc.querySelector("ul");
+
+
+        return firstUl || null;
+    }
+
+
+    function importPolaroid(li) {
+
+        const directChildren =
+            Array.from(li.children);
+
+
+        const p =
+            directChildren.find(function(element) {
+                return element.tagName
+                    .toLowerCase() === "p";
+            });
+
+
+        const ul =
+            directChildren.find(function(element) {
+                return element.tagName
+                    .toLowerCase() === "ul";
+            });
+
+
+        if (!p || !ul) {
+            return null;
+        }
+
+
+        const img =
+            p.querySelector("img");
+
+
+        if (!img) {
+            return null;
+        }
+
+
+        const hasImageInP =
+            img.parentElement === p;
+
+
+        if (!hasImageInP) {
+            return null;
+        }
+
+
+        /*
+         * Sticky-fecha también tiene <p> + <ul>.
+         *
+         * Una Polaroid tiene una imagen dentro
+         * del <p>, por eso esta detección es segura.
+         */
+        const textLi =
+            ul.querySelector("li");
+
+
+        return {
+            type: "polaroid",
+            image: img.getAttribute("src") || "",
+            alt: img.getAttribute("alt") || "",
+            text: textLi
+                ? textLi.textContent
+                : ""
+        };
+    }
+
+
+    function importFilmStrip(li) {
+
+        if (!li.classList.contains("film-strip")) {
+            return null;
+        }
+
+
+        const frames =
+            Array.from(
+                li.querySelectorAll(":scope > .film-frame")
+            );
+
+
+        const images =
+            frames.map(function(frame) {
+
+                const img =
+                    frame.querySelector("img");
+
+                return {
+                    image: img
+                        ? img.getAttribute("src") || ""
+                        : "",
+                    alt: img
+                        ? img.getAttribute("alt") || ""
+                        : ""
+                };
+            });
+
+
+        return {
+            type: "film-strip",
+            name: "",
+            images: images
+        };
+    }
+
+
+    function importTicket(li) {
+
+        if (!li.classList.contains("ticket-frame")) {
+            return null;
+        }
+
+
+        const img =
+            li.querySelector(":scope > img");
+
+
+        if (!img) {
+            return null;
+        }
+
+
+        return {
+            type: "ticket",
+            image: img.getAttribute("src") || "",
+            alt: img.getAttribute("alt") || ""
+        };
+    }
+
+
+    function importPngFrame(li) {
+
+        if (!li.classList.contains("png-frame")) {
+            return null;
+        }
+
+
+        const img =
+            li.querySelector(":scope > img");
+
+
+        if (!img) {
+            return null;
+        }
+
+
+        let scale = "1.4";
+
+        const style =
+            li.getAttribute("style") || "";
+
+
+        const match =
+            style.match(
+                /--png-scale\s*:\s*([^;]+)/
+            );
+
+
+        if (match) {
+            scale = match[1].trim();
+        }
+
+
+        return {
+            type: "png-frame",
+            image: img.getAttribute("src") || "",
+            alt: img.getAttribute("alt") || "",
+            scale: scale
+        };
+    }
+
+
+    function importStickyPng(li) {
+
+        const img =
+            li.querySelector(
+                ":scope > img.sticky-drawing"
+            );
+
+
+        if (!img) {
+            return null;
+        }
+
+
+        return {
+            type: "sticky-png",
+            image: img.getAttribute("src") || "",
+            alt: img.getAttribute("alt") || ""
+        };
+    }
+
+
+    function importStickyFecha(li) {
+
+        const directChildren =
+            Array.from(li.children);
+
+
+        const p =
+            directChildren.find(function(element) {
+                return element.tagName
+                    .toLowerCase() === "p";
+            });
+
+
+        const ul =
+            directChildren.find(function(element) {
+                return element.tagName
+                    .toLowerCase() === "ul";
+            });
+
+
+        if (!p || !ul) {
+            return null;
+        }
+
+
+        /*
+         * Si el <p> contiene una imagen, no es Sticky-fecha.
+         */
+        if (p.querySelector("img")) {
+            return null;
+        }
+
+
+        const dateLi =
+            ul.querySelector("li");
+
+
+        return {
+            type: "sticky-fecha",
+            text: p.textContent,
+            date: dateLi
+                ? dateLi.textContent
+                : ""
+        };
+    }
+
+
+    function importSticky(li) {
+
+        const directChildren =
+            Array.from(li.children);
+
+
+        const p =
+            directChildren.find(function(element) {
+                return element.tagName
+                    .toLowerCase() === "p";
+            });
+
+
+        if (!p) {
+            return null;
+        }
+
+
+        if (p.querySelector("img")) {
+            return null;
+        }
+
+
+        const hasUl =
+            directChildren.some(function(element) {
+                return element.tagName
+                    .toLowerCase() === "ul";
+            });
+
+
+        if (hasUl) {
+            return null;
+        }
+
+
+        return {
+            type: "sticky",
+            text: p.textContent
+        };
+    }
+
+
+    function importLi(li) {
+
+        /*
+         * 1. Film Strip
+         */
+        let result =
+            importFilmStrip(li);
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 2. Ticket
+         */
+        result =
+            importTicket(li);
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 3. PNG Frame
+         */
+        result =
+            importPngFrame(li);
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 4. Sticky PNG
+         */
+        result =
+            importStickyPng(li);
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 5. Polaroid
+         *
+         * Antes que Sticky-fecha porque ambos
+         * utilizan <p> + <ul>.
+         */
+        result =
+            importPolaroid(li);
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 6. Diary
+         *
+         * Si hay <hr> directo, es Diary.
+         */
+        const hasDirectHr =
+            Array.from(li.children)
+                .some(function(element) {
+                    return element.tagName
+                        .toLowerCase() === "hr";
+                });
+
+
+        if (hasDirectHr) {
+
+            result =
+                importDiary(li);
+
+            if (result) {
+                return result;
+            }
+        }
+
+
+        /*
+         * 7. Sticky + fecha
+         */
+        result =
+            importStickyFecha(li);
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 8. Sticky normal
+         */
+        result =
+            importSticky(li);
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 9. Fallback Diary
+         *
+         * También permite reparar HTML antiguo
+         * que tenga <p>…</p>.
+         */
+        result =
+            importDiary(li);
+
+        if (result) {
+            return result;
+        }
+
+
+        return null;
+    }
+
+
+    function importHtml() {
+
+        const source =
+            $("importInput").value.trim();
+
+
+        if (!source) {
+
+            setStatus(
+                "importStatus",
+                "Pega primero el HTML que quieres importar."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const parser =
+                new DOMParser();
+
+
+            const doc =
+                parser.parseFromString(
+                    source,
+                    "text/html"
+                );
+
+
+            const ul =
+                findTinyPhotosList(doc);
+
+
+            if (!ul) {
+
+                setStatus(
+                    "importStatus",
+                    "No se encontró ningún <ul>."
+                );
+
+                return;
+            }
+
+
+            const lis =
+                Array.from(ul.children)
+                    .filter(function(element) {
+                        return element.tagName
+                            .toLowerCase() === "li";
+                    });
+
+
+            const imported = [];
+
+
+            lis.forEach(function(li) {
+
+                const item =
+                    importLi(li);
+
+
+                if (item) {
+                    imported.push(item);
+                }
+            });
+
+
+            if (!imported.length) {
+
+                setStatus(
+                    "importStatus",
+                    "No se pudieron reconocer elementos."
+                );
+
+                return;
+            }
+
+
+            items = imported;
+
+            saveItems();
+            renderItems();
+            generateOutput();
+
+
+            setStatus(
+                "importStatus",
+                imported.length +
+                " elemento(s) importado(s) correctamente."
+            );
+
+
+            $("importInput").value = "";
+
+        } catch (error) {
+
+            setStatus(
+                "importStatus",
+                "Error al importar el HTML."
+            );
+        }
+    }
+
+
+    /*
+     * ============================================================
+     * EVENTOS
+     * ============================================================
+     */
+
+    $("elementType").addEventListener(
+        "change",
+        function() {
+
+            updateTypeFields();
+
+            setStatus(
+                "formStatus",
+                ""
+            );
+        }
+    );
+
+
+    $("addButton").addEventListener(
+        "click",
+        function() {
+
+            const item =
+                getFormData();
+
+
+            if (!item) {
+                return;
+            }
+
+
+            if (editingIndex >= 0) {
+
+                items[editingIndex] =
+                    item;
+
+                setStatus(
+                    "formStatus",
+                    "Elemento actualizado."
+                );
+
+            } else {
+
+                items.push(item);
+
+                setStatus(
+                    "formStatus",
+                    "Elemento añadido."
+                );
+            }
+
+
+            saveItems();
+            renderItems();
+            generateOutput();
+
+            clearForm();
+        }
+    );
+
+
+    $("cancelEditButton").addEventListener(
+        "click",
+        function() {
+
+            clearForm();
+
+            setStatus(
+                "formStatus",
+                "Edición cancelada."
+            );
+        }
+    );
+
+
+    $("resetButton").addEventListener(
+        "click",
+        function() {
+
+            if (!items.length) {
+                return;
+            }
+
+
+            if (
+                !confirm(
+                    "¿Seguro que quieres borrar todos los elementos?"
+                )
+            ) {
+                return;
+            }
+
+
+            items = [];
+
+            saveItems();
+            renderItems();
+            generateOutput();
+
+            clearForm();
+        }
+    );
+
+
+    $("copyButton").addEventListener(
+        "click",
+        async function() {
+
+            const value =
+                $("output").value;
+
+
+            try {
+
+                await navigator.clipboard.writeText(
+                    value
+                );
+
+                setStatus(
+                    "outputStatus",
+                    "HTML copiado al portapapeles."
+                );
+
+            } catch (error) {
+
+                $("output").select();
+
+                document.execCommand("copy");
+
+                setStatus(
+                    "outputStatus",
+                    "HTML copiado."
+                );
+            }
+        }
+    );
+
+
+    $("downloadButton").addEventListener(
+        "click",
+        function() {
+
+            const value =
+                $("output").value;
+
+
+            const blob =
+                new Blob(
+                    [value],
+                    {
+                        type: "text/html;charset=utf-8"
+                    }
+                );
+
+
+            const url =
+                URL.createObjectURL(blob);
+
+
+            const link =
+                document.createElement("a");
+
+            link.href = url;
+            link.download =
+                "tiny-photos.html";
+
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            URL.revokeObjectURL(url);
+        }
+    );
+
+
+    $("importButton").addEventListener(
+        "click",
+        importHtml
+    );
+
+
+    /*
+     * ============================================================
+     * INICIALIZACIÓN
+     * ============================================================
+     */
+
+    loadItems();
+    updateTypeFields();
+    renderItems();
+    generateOutput();
+
+})();
+</script>
+
+</body>
+</html>
