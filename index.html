@@ -14,12 +14,12 @@
         margin: 0;
         padding: 24px;
         font-family: Arial, Helvetica, sans-serif;
-        background: #f4f4f4;
+        background: #fff;
         color: #222;
     }
 
     .container {
-        max-width: 1450px;
+        max-width: 1100px;
         margin: 0 auto;
     }
 
@@ -30,71 +30,81 @@
 
     h2 {
         margin: 0 0 14px;
-        font-size: 19px;
-    }
-
-    .layout {
-        display: grid;
-        grid-template-columns: minmax(420px, 1fr) minmax(520px, 1.15fr);
-        gap: 20px;
-        align-items: start;
+        font-size: 20px;
     }
 
     .panel {
-        background: #fff;
         border: 1px solid #ddd;
         border-radius: 10px;
         padding: 18px;
-        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+        margin-bottom: 18px;
+        background: #fff;
     }
 
-    .left-panel {
+    .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .left-column {
         min-width: 0;
     }
 
-    .right-panel {
-        min-width: 0;
+    .elements-panel {
+        position: sticky;
+        top: 16px;
+        height: calc(100vh - 32px);
+        min-height: 300px;
         display: flex;
         flex-direction: column;
-        min-height: 0;
+        min-width: 0;
     }
 
-    .form-group {
+    .elements-panel-header {
+        flex-shrink: 0;
+    }
+
+    .elements-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 5px;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+    }
+
+    .field {
         margin-bottom: 14px;
     }
 
-    label {
+    .field label {
         display: block;
-        font-size: 13px;
         font-weight: 700;
         margin-bottom: 6px;
-        color: #444;
     }
 
     input,
-    textarea,
-    select {
+    select,
+    textarea {
         width: 100%;
         border: 1px solid #ccc;
         border-radius: 6px;
         padding: 10px 11px;
-        font-family: inherit;
-        font-size: 14px;
+        font: inherit;
         background: #fff;
         color: #222;
     }
 
     textarea {
+        min-height: 120px;
         resize: vertical;
-        min-height: 90px;
-        line-height: 1.45;
     }
 
-    input:focus,
-    textarea:focus,
-    select:focus {
-        outline: none;
-        border-color: #999;
+    .hidden {
+        display: none !important;
     }
 
     button {
@@ -148,104 +158,80 @@
         border-color: #d2d2d2;
     }
 
-    .hidden {
-        display: none !important;
-    }
-
-    .form-actions {
-        margin-top: 16px;
-        padding-top: 14px;
-        border-top: 1px solid #eee;
+    .actions {
+        margin-top: 10px;
     }
 
     .status {
-        min-height: 18px;
+        min-height: 20px;
         margin-top: 8px;
         font-size: 13px;
-        color: #666;
+        color: #555;
     }
 
-    .small-note {
-        margin-top: 5px;
+    .hint {
         font-size: 12px;
         color: #777;
+        margin-top: 5px;
         line-height: 1.4;
     }
 
-    /* LISTA DERECHA */
-
-    .elements-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    .elements-count {
-        font-size: 12px;
-        color: #777;
-        white-space: nowrap;
+    #itemsList {
+        min-height: 20px;
     }
 
     /*
-        El scroll está únicamente en esta zona.
-        Así la parte superior de edición permanece fija.
-    */
-    .items-scroll {
-        height: min(62vh, 680px);
-        min-height: 300px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 4px 6px 8px 2px;
-        border: 1px solid #e3e3e3;
-        border-radius: 8px;
-        background: #fafafa;
-    }
+     * ============================================================
+     * ELEMENT ENTRY
+     * ============================================================
+     *
+     * El .element-entry contiene:
+     *
+     *   - el elemento arrastrable
+     *   - el botón + que está FUERA del elemento
+     *
+     * Así el + no forma parte del elemento visual.
+     */
 
-    .items-scroll::-webkit-scrollbar {
-        width: 9px;
-    }
-
-    .items-scroll::-webkit-scrollbar-track {
-        background: #f0f0f0;
-        border-radius: 10px;
-    }
-
-    .items-scroll::-webkit-scrollbar-thumb {
-        background: #c8c8c8;
-        border-radius: 10px;
-    }
-
-    .items-scroll::-webkit-scrollbar-thumb:hover {
-        background: #aaa;
-    }
-
-    /*
-        Cada fila tiene dos partes:
-        - .item = elemento
-        - .insert-after = botón + FUERA del elemento
-    */
-    .item-row {
-        display: flex;
-        align-items: stretch;
-        gap: 7px;
-        margin-bottom: 8px;
+    .element-entry {
         position: relative;
+        margin-bottom: 8px;
+        touch-action: none;
+        cursor: grab;
+    }
+
+    .element-entry:hover {
+        cursor: grab;
+    }
+
+    .element-entry.dragging {
+        opacity: .95;
+        z-index: 1000;
+    }
+
+    .element-entry.dragging .item {
+        background: #fff;
+        border-color: #999;
+        transform: scale(1.035) translateY(-2px);
+        box-shadow:
+            0 14px 30px rgba(0,0,0,.18),
+            0 3px 8px rgba(0,0,0,.10);
+    }
+
+    .element-entry.dragging .insert-after {
+        visibility: hidden;
     }
 
     .item {
         position: relative;
-        flex: 1 1 auto;
-        min-width: 0;
         background: #fafafa;
         border: 1px solid #ddd;
         border-radius: 9px;
         padding: 12px;
+        margin-bottom: 4px;
         display: flex;
         align-items: center;
         gap: 10px;
-        cursor: grab;
         user-select: none;
         -webkit-user-select: none;
         touch-action: none;
@@ -263,17 +249,6 @@
         border-color: #cfcfcf;
     }
 
-    .item.dragging {
-        opacity: .95;
-        background: #fff;
-        border-color: #999;
-        transform: scale(1.035) translateY(-2px);
-        box-shadow:
-            0 14px 30px rgba(0,0,0,.18),
-            0 3px 8px rgba(0,0,0,.10);
-        z-index: 1000;
-    }
-
     .item.dragging::after {
         content: "";
         position: absolute;
@@ -283,90 +258,75 @@
         box-shadow: inset 0 0 0 2px rgba(0,0,0,.08);
     }
 
-    .item-number {
-        flex: 0 0 auto;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: #ededed;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: 700;
-        color: #555;
-    }
-
     .item-info {
-        flex: 1 1 auto;
+        flex: 1;
         min-width: 0;
     }
 
-    .item-type {
-        font-size: 12px;
+    .item-title {
         font-weight: 700;
-        color: #555;
         margin-bottom: 3px;
-        text-transform: uppercase;
-        letter-spacing: .2px;
     }
 
     .item-description {
         font-size: 13px;
-        color: #333;
+        color: #666;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
     .item-actions {
-        flex: 0 0 auto;
-        display: flex;
-        align-items: center;
-        gap: 4px;
+        flex-shrink: 0;
+        white-space: nowrap;
     }
 
     .item-actions button {
-        margin: 0;
-        padding: 6px 8px;
+        margin-bottom: 0;
+        margin-right: 3px;
+        padding: 6px 9px;
         font-size: 12px;
     }
 
     /*
-        Botón + fuera de la caja del elemento.
-    */
+     * BOTÓN + FUERA DEL ELEMENTO
+     */
+
     .insert-after {
-        flex: 0 0 38px;
-        width: 38px;
-        min-width: 38px;
-        border-radius: 9px;
-        margin: 0;
+        display: block;
+        width: 34px;
+        height: 25px;
         padding: 0;
-        align-self: stretch;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        line-height: 1;
-        font-weight: 400;
+        margin: 0 auto;
+        border-radius: 999px;
+        font-size: 18px;
+        line-height: 21px;
+        font-weight: 700;
+        background: #fff;
         color: #666;
-        background: #f7f7f7;
-        border: 1px solid #d7d7d7;
+        border-color: #d0d0d0;
+        cursor: pointer;
+        touch-action: manipulation;
     }
 
     .insert-after:hover {
-        background: #ededed;
-        border-color: #bbb;
+        background: #eeeeee;
         color: #222;
+        border-color: #bdbdbd;
     }
 
-    .blank-item {
+    /*
+     * BLANK
+     */
+
+    .item.blank-item {
+        background: #f7f7f7;
         border-style: dashed;
-        background: #fcfcfc;
+        color: #777;
     }
 
-    .blank-item .item-type {
-        color: #888;
+    .blank-item .item-title {
+        color: #555;
     }
 
     .blank-item .item-description {
@@ -374,18 +334,18 @@
         font-style: italic;
     }
 
+    /*
+     * PLACEHOLDER DE DRAG
+     */
+
     .drag-placeholder {
         box-sizing: border-box;
         border: 2px dashed #c7c7c7;
         border-radius: 9px;
         background: #f5f5f5;
-        margin-bottom: 8px;
         position: relative;
         opacity: .95;
-        flex: 1 1 auto;
-        transition:
-            height .15s ease,
-            opacity .15s ease;
+        margin-bottom: 8px;
     }
 
     .drag-placeholder::before {
@@ -406,75 +366,51 @@
         cursor: grabbing;
     }
 
-    .empty-list {
-        padding: 35px 20px;
-        text-align: center;
+    #output {
+        min-height: 300px;
+        font-family: Consolas, Monaco, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre;
+    }
+
+    .empty {
         color: #888;
         font-size: 14px;
+        padding: 8px 0;
     }
 
-    /* OUTPUT */
+    @media (max-width: 900px) {
 
-    .output-panel {
-        margin-top: 20px;
+        .workspace {
+            grid-template-columns: 1fr;
+        }
+
+        .elements-panel {
+            position: static;
+            height: 60vh;
+            min-height: 350px;
+        }
     }
 
-    #htmlOutput {
-        min-height: 360px;
-        font-family: Consolas, Monaco, monospace;
-        font-size: 12px;
-        white-space: pre;
-        overflow: auto;
-    }
+    @media (max-width: 750px) {
 
-    .output-actions {
-        margin-top: 10px;
-    }
-
-    /* IMPORT */
-
-    .import-panel {
-        margin-top: 20px;
-    }
-
-    #importInput {
-        min-height: 180px;
-        font-family: Consolas, Monaco, monospace;
-        font-size: 12px;
-    }
-
-    @media (max-width: 1000px) {
         body {
             padding: 14px;
         }
 
-        .layout {
-            grid-template-columns: 1fr;
-        }
-
-        .items-scroll {
-            height: 55vh;
-        }
-    }
-
-    @media (max-width: 620px) {
         .item {
-            padding: 9px;
-            gap: 7px;
+            align-items: flex-start;
         }
 
-        .item-actions button {
-            padding: 6px;
+        .item-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
-        .item-actions button span {
-            display: none;
-        }
-
-        .insert-after {
-            flex-basis: 34px;
-            width: 34px;
-            min-width: 34px;
+        .elements-panel {
+            height: 65vh;
         }
     }
 </style>
@@ -486,385 +422,575 @@
 
     <h1>PhotoBox Generator</h1>
 
-    <div class="layout">
+    <div class="workspace">
 
-        <!-- =========================
-             PANEL IZQUIERDO
-        ========================== -->
+        <div class="left-column">
 
-        <div class="panel left-panel">
+            <!-- ================================================== -->
+            <!-- EDITOR -->
+            <!-- ================================================== -->
 
-            <h2 id="formTitle">Crear elemento</h2>
+            <div class="panel">
 
-            <div class="form-group">
-                <label for="elementType">Tipo de elemento</label>
+                <h2>Añadir elemento</h2>
 
-                <select id="elementType">
-                    <option value="blank">Blank</option>
-                    <option value="polaroid">Polaroid</option>
-                    <option value="sticky">Sticky Note</option>
-                    <option value="sticky-fecha">Sticky Note + Fecha</option>
-                    <option value="sticky-png">Sticky PNG</option>
-                    <option value="ticket">Ticket</option>
-                    <option value="png-frame">PNG Frame</option>
-                    <option value="diary">Diary Notes</option>
-                    <option value="film-strip">Film Strip</option>
-                </select>
-            </div>
+                <div class="field">
+                    <label for="elementType">Tipo de elemento</label>
 
-            <!-- BLANK -->
+                    <select id="elementType">
 
-            <div class="type-fields hidden" id="fields-blank">
-                <div class="small-note">
-                    Elemento vacío. Puedes editarlo después para elegir el tipo y rellenar sus datos.
+                        <option value="">
+                            Selecciona un tipo...
+                        </option>
+
+                        <option value="polaroid">
+                            Polaroid
+                        </option>
+
+                        <option value="sticky">
+                            Sticky Note
+                        </option>
+
+                        <option value="sticky-fecha">
+                            Sticky Note + Fecha
+                        </option>
+
+                        <option value="sticky-png">
+                            Sticky PNG
+                        </option>
+
+                        <option value="ticket">
+                            Ticket
+                        </option>
+
+                        <option value="png-frame">
+                            PNG Frame
+                        </option>
+
+                        <option value="diary">
+                            Diary Notes
+                        </option>
+
+                        <option value="film-strip">
+                            Film Strip
+                        </option>
+
+                    </select>
                 </div>
-            </div>
 
-            <!-- POLAROID -->
 
-            <div class="type-fields hidden" id="fields-polaroid">
+                <!-- POLAROID -->
 
-                <div class="form-group">
-                    <label for="polaroidImage">URL de la imagen</label>
-                    <input
-                        type="text"
-                        id="polaroidImage"
-                        placeholder="https://..."
-                    >
-                </div>
+                <div
+                    class="type-fields hidden"
+                    id="fields-polaroid"
+                >
 
-                <div class="form-group">
-                    <label for="polaroidAlt">ALT de la imagen</label>
-                    <input
-                        type="text"
-                        id="polaroidAlt"
-                        placeholder="Descripción de la imagen"
-                    >
-                </div>
+                    <div class="field">
+                        <label for="polaroidImage">
+                            URL de la imagen
+                        </label>
 
-                <div class="form-group">
-                    <label for="polaroidCaption">Texto de la Polaroid</label>
-                    <input
-                        type="text"
-                        id="polaroidCaption"
-                        placeholder="Una sola línea"
-                    >
-                    <div class="small-note">
-                        Las Polaroids llevan una sola línea de texto.
+                        <input
+                            id="polaroidImage"
+                            type="text"
+                            placeholder="https://..."
+                        >
                     </div>
-                </div>
 
-            </div>
 
-            <!-- STICKY -->
+                    <div class="field">
+                        <label for="polaroidAlt">
+                            ALT de la imagen
+                        </label>
 
-            <div class="type-fields hidden" id="fields-sticky">
-
-                <div class="form-group">
-                    <label for="stickyText">Texto del Sticky Note</label>
-                    <textarea
-                        id="stickyText"
-                        placeholder="Escribe el texto..."
-                    ></textarea>
-                </div>
-
-            </div>
-
-            <!-- STICKY FECHA -->
-
-            <div class="type-fields hidden" id="fields-sticky-fecha">
-
-                <div class="form-group">
-                    <label for="stickyFechaText">Texto del Sticky Note</label>
-                    <textarea
-                        id="stickyFechaText"
-                        placeholder="Escribe el texto..."
-                    ></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="stickyFechaDate">Fecha</label>
-                    <input
-                        type="text"
-                        id="stickyFechaDate"
-                        placeholder="12/05/2026"
-                    >
-                </div>
-
-            </div>
-
-            <!-- STICKY PNG -->
-
-            <div class="type-fields hidden" id="fields-sticky-png">
-
-                <div class="form-group">
-                    <label for="stickyPngImage">URL de la imagen PNG</label>
-                    <input
-                        type="text"
-                        id="stickyPngImage"
-                        placeholder="https://..."
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="stickyPngAlt">ALT de la imagen</label>
-                    <input
-                        type="text"
-                        id="stickyPngAlt"
-                        placeholder="Descripción / ALT"
-                    >
-                </div>
-
-            </div>
-
-            <!-- TICKET -->
-
-            <div class="type-fields hidden" id="fields-ticket">
-
-                <div class="form-group">
-                    <label for="ticketImage">URL de la imagen</label>
-                    <input
-                        type="text"
-                        id="ticketImage"
-                        placeholder="https://..."
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="ticketAlt">ALT de la imagen</label>
-                    <input
-                        type="text"
-                        id="ticketAlt"
-                        placeholder="Descripción de la imagen"
-                    >
-                </div>
-
-            </div>
-
-            <!-- PNG FRAME -->
-
-            <div class="type-fields hidden" id="fields-png-frame">
-
-                <div class="form-group">
-                    <label for="pngFrameImage">URL de la imagen PNG</label>
-                    <input
-                        type="text"
-                        id="pngFrameImage"
-                        placeholder="https://..."
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="pngFrameAlt">ALT de la imagen</label>
-                    <input
-                        type="text"
-                        id="pngFrameAlt"
-                        placeholder="Descripción de la imagen"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="pngFrameScale">Escala</label>
-                    <input
-                        type="number"
-                        id="pngFrameScale"
-                        value="1.4"
-                        step="0.1"
-                        min="0.1"
-                    >
-                </div>
-
-            </div>
-
-            <!-- DIARY -->
-
-            <div class="type-fields hidden" id="fields-diary">
-
-                <div class="form-group">
-                    <label for="diaryText">Contenido del Diary Notes</label>
-                    <textarea
-                        id="diaryText"
-                        placeholder="Primera línea&#10;...&#10;Segunda línea"
-                    ></textarea>
-
-                    <div class="small-note">
-                        Escribe una línea con <strong>...</strong> para crear la línea de puntos del Diary.
-                        También se reconocen <strong>…</strong> y <strong>⋯</strong>.
-                        El separador se genera como <code>&lt;hr&gt;</code> independiente, nunca dentro de un párrafo.
+                        <input
+                            id="polaroidAlt"
+                            type="text"
+                            placeholder="Descripción de la imagen"
+                        >
                     </div>
+
+
+                    <div class="field">
+                        <label for="polaroidText">
+                            Texto de la Polaroid
+                        </label>
+
+                        <input
+                            id="polaroidText"
+                            type="text"
+                            placeholder="Texto"
+                        >
+
+                        <div class="hint">
+                            La Polaroid lleva una sola línea de texto.
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- STICKY -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-sticky"
+                >
+
+                    <div class="field">
+                        <label for="stickyText">
+                            Texto del Sticky Note
+                        </label>
+
+                        <textarea
+                            id="stickyText"
+                            placeholder="Texto"
+                        ></textarea>
+                    </div>
+
+                </div>
+
+
+                <!-- STICKY FECHA -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-sticky-fecha"
+                >
+
+                    <div class="field">
+                        <label for="stickyFechaText">
+                            Texto del Sticky Note
+                        </label>
+
+                        <textarea
+                            id="stickyFechaText"
+                            placeholder="Texto"
+                        ></textarea>
+                    </div>
+
+
+                    <div class="field">
+                        <label for="stickyFechaDate">
+                            Fecha
+                        </label>
+
+                        <input
+                            id="stickyFechaDate"
+                            type="text"
+                            placeholder="01/01/2026"
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- STICKY PNG -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-sticky-png"
+                >
+
+                    <div class="field">
+                        <label for="stickyPngImage">
+                            URL del PNG
+                        </label>
+
+                        <input
+                            id="stickyPngImage"
+                            type="text"
+                            placeholder="https://..."
+                        >
+                    </div>
+
+
+                    <div class="field">
+                        <label for="stickyPngAlt">
+                            ALT del PNG
+                        </label>
+
+                        <input
+                            id="stickyPngAlt"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- TICKET -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-ticket"
+                >
+
+                    <div class="field">
+                        <label for="ticketImage">
+                            URL de la imagen
+                        </label>
+
+                        <input
+                            id="ticketImage"
+                            type="text"
+                            placeholder="https://..."
+                        >
+                    </div>
+
+
+                    <div class="field">
+                        <label for="ticketAlt">
+                            ALT de la imagen
+                        </label>
+
+                        <input
+                            id="ticketAlt"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- PNG FRAME -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-png-frame"
+                >
+
+                    <div class="field">
+                        <label for="pngFrameImage">
+                            URL de la imagen
+                        </label>
+
+                        <input
+                            id="pngFrameImage"
+                            type="text"
+                            placeholder="https://..."
+                        >
+                    </div>
+
+
+                    <div class="field">
+                        <label for="pngFrameAlt">
+                            ALT de la imagen
+                        </label>
+
+                        <input
+                            id="pngFrameAlt"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+                    </div>
+
+
+                    <div class="field">
+                        <label for="pngFrameScale">
+                            Escala
+                        </label>
+
+                        <input
+                            id="pngFrameScale"
+                            type="number"
+                            step="0.1"
+                            value="1.4"
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- DIARY -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-diary"
+                >
+
+                    <div class="field">
+
+                        <label for="diaryText">
+                            Contenido del Diary Notes
+                        </label>
+
+                        <textarea
+                            id="diaryText"
+                            placeholder="Escribe cada línea. Escribe ... o … en una línea para crear una separación."
+                        ></textarea>
+
+                        <div class="hint">
+                            Una línea con
+                            <strong>...</strong>
+                            o
+                            <strong>…</strong>
+                            se convierte directamente en
+                            <strong>&lt;hr&gt;</strong>.
+                            El &lt;hr&gt; queda fuera de los párrafos.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FILM STRIP -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-film-strip"
+                >
+
+                    <div class="field">
+
+                        <label for="filmName">
+                            Nombre / comentario del Film Strip
+                        </label>
+
+                        <input
+                            id="filmName"
+                            type="text"
+                            placeholder="Nombre o comentario"
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmImage1">
+                            Imagen 1
+                        </label>
+
+                        <input
+                            id="filmImage1"
+                            type="text"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmAlt1">
+                            ALT 1
+                        </label>
+
+                        <input
+                            id="filmAlt1"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmImage2">
+                            Imagen 2
+                        </label>
+
+                        <input
+                            id="filmImage2"
+                            type="text"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmAlt2">
+                            ALT 2
+                        </label>
+
+                        <input
+                            id="filmAlt2"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmImage3">
+                            Imagen 3
+                        </label>
+
+                        <input
+                            id="filmImage3"
+                            type="text"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmAlt3">
+                            ALT 3
+                        </label>
+
+                        <input
+                            id="filmAlt3"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="actions">
+
+                    <button
+                        id="addButton"
+                        class="success"
+                    >
+                        Añadir elemento
+                    </button>
+
+                    <button
+                        id="cancelEditButton"
+                        class="secondary hidden"
+                    >
+                        Cancelar edición
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="formStatus"
+                    class="status"
+                ></div>
+
+            </div>
+
+
+            <!-- ================================================== -->
+            <!-- HTML GENERADO -->
+            <!-- ================================================== -->
+
+            <div class="panel">
+
+                <h2>HTML generado</h2>
+
+                <textarea
+                    id="output"
+                    readonly
+                ></textarea>
+
+                <div class="actions">
+
+                    <button
+                        id="copyButton"
+                        class="success"
+                    >
+                        Copiar HTML
+                    </button>
+
+                    <button
+                        id="downloadButton"
+                        class="secondary"
+                    >
+                        Descargar HTML
+                    </button>
+
+                </div>
+
+                <div
+                    id="outputStatus"
+                    class="status"
+                ></div>
+
+            </div>
+
+
+            <!-- ================================================== -->
+            <!-- IMPORTAR -->
+            <!-- ================================================== -->
+
+            <div class="panel">
+
+                <h2>Importar HTML existente</h2>
+
+                <textarea
+                    id="importInput"
+                    placeholder="Pega aquí un documento HTML, una sección .tiny-photos, un <ul> o elementos <li>..."
+                ></textarea>
+
+                <div class="actions">
+
+                    <button
+                        id="importButton"
+                        class="success"
+                    >
+                        Importar HTML
+                    </button>
+
+                </div>
+
+                <div
+                    id="importStatus"
+                    class="status"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ====================================================== -->
+        <!-- ELEMENTOS ACTIVOS -->
+        <!-- ====================================================== -->
+
+        <div
+            class="panel elements-panel"
+        >
+
+            <div class="elements-panel-header">
+
+                <h2>Elementos activos</h2>
+
+                <div class="hint">
+                    Arrastra los elementos para cambiar su orden.
+                    El botón <strong>+</strong> crea un elemento vacío
+                    justo después.
                 </div>
 
             </div>
 
-            <!-- FILM STRIP -->
 
-            <div class="type-fields hidden" id="fields-film-strip">
+            <div
+                id="itemsList"
+                class="elements-list"
+            ></div>
 
-                <div class="form-group">
-                    <label for="filmName">Nombre / comentario del Film Strip</label>
-                    <input
-                        type="text"
-                        id="filmName"
-                        placeholder="Nombre o comentario"
-                    >
-                </div>
 
-                <div class="form-group">
-                    <label for="filmImage1">Imagen 1</label>
-                    <input
-                        type="text"
-                        id="filmImage1"
-                        placeholder="URL de la imagen"
-                    >
-                </div>
+            <div class="actions">
 
-                <div class="form-group">
-                    <label for="filmAlt1">ALT 1</label>
-                    <input
-                        type="text"
-                        id="filmAlt1"
-                        placeholder="ALT de la imagen"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="filmImage2">Imagen 2</label>
-                    <input
-                        type="text"
-                        id="filmImage2"
-                        placeholder="URL de la imagen"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="filmAlt2">ALT 2</label>
-                    <input
-                        type="text"
-                        id="filmAlt2"
-                        placeholder="ALT de la imagen"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="filmImage3">Imagen 3</label>
-                    <input
-                        type="text"
-                        id="filmImage3"
-                        placeholder="URL de la imagen"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="filmAlt3">ALT 3</label>
-                    <input
-                        type="text"
-                        id="filmAlt3"
-                        placeholder="ALT de la imagen"
-                    >
-                </div>
-
-            </div>
-
-            <div class="form-actions">
-
-                <button id="saveElementButton" class="success">
-                    Añadir elemento
+                <button
+                    id="resetButton"
+                    class="danger"
+                >
+                    Borrar todo
                 </button>
 
-                <button id="cancelEditButton" class="secondary hidden">
-                    Cancelar edición
-                </button>
-
-                <button id="clearFormButton" class="secondary">
-                    Limpiar
-                </button>
-
-                <div id="formStatus" class="status"></div>
-
             </div>
 
         </div>
-
-
-        <!-- =========================
-             PANEL DERECHO
-        ========================== -->
-
-        <div class="panel right-panel">
-
-            <div class="elements-header">
-                <h2>Elementos creados</h2>
-                <div class="elements-count" id="elementsCount">
-                    0 elementos
-                </div>
-            </div>
-
-            <div class="items-scroll" id="itemsList">
-                <div class="empty-list">
-                    No hay elementos creados.
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- =========================
-         OUTPUT
-    ========================== -->
-
-    <div class="panel output-panel">
-
-        <h2>HTML generado</h2>
-
-        <textarea id="htmlOutput" readonly></textarea>
-
-        <div class="output-actions">
-
-            <button id="copyButton" class="success">
-                Copiar HTML
-            </button>
-
-            <button id="downloadButton" class="secondary">
-                Descargar HTML
-            </button>
-
-            <button id="resetButton" class="danger">
-                Borrar todo
-            </button>
-
-        </div>
-
-        <div id="outputStatus" class="status"></div>
-
-    </div>
-
-
-    <!-- =========================
-         IMPORT
-    ========================== -->
-
-    <div class="panel import-panel">
-
-        <h2>Importar HTML existente</h2>
-
-        <textarea
-            id="importInput"
-            placeholder="Pega aquí un documento HTML, una sección .tiny-photos, un <ul> o el contenido correspondiente..."
-        ></textarea>
-
-        <div style="margin-top:10px;">
-            <button id="importButton" class="success">
-                Importar HTML
-            </button>
-
-            <button id="clearImportButton" class="secondary">
-                Limpiar
-            </button>
-        </div>
-
-        <div id="importStatus" class="status"></div>
 
     </div>
 
@@ -872,2391 +998,2744 @@
 
 
 <script>
-"use strict";
+(function() {
 
-/* =========================================================
-   CONFIGURACIÓN
-========================================================= */
-
-const STORAGE_KEY = "photobox-generator-items-v4";
-
-const DIARY_PIXEL_GIF =
-    "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    "use strict";
 
 
-/* =========================================================
-   UTILIDADES
-========================================================= */
-
-function $(id) {
-    return document.getElementById(id);
-}
+    const STORAGE_KEY =
+        "photobox-generator-items-v4";
 
 
-function normalizeLineEndings(value) {
-    return String(value ?? "")
-        .replace(/\r\n/g, "\n")
-        .replace(/\r/g, "\n");
-}
+    let items = [];
+
+    let editingId = null;
+
+    let dragState = null;
 
 
-/*
-    Escape para texto HTML.
-
-    IMPORTANTE:
-    No convierte ' en &#39;.
-    Así "don't" sigue siendo "don't".
-*/
-function escapeHtmlText(value) {
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-}
-
-
-/*
-    Escape específico para atributos HTML.
-*/
-function escapeHtmlAttribute(value) {
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/"/g, "&quot;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-}
-
-
-/*
-    Capitalización de Polaroids y Sticky Notes.
-
-    NO se utiliza jamás para Diary.
-*/
-function capitalizeWords(value) {
-    return String(value ?? "")
-        .toLocaleLowerCase("es-ES")
-        .replace(
-            /(^|[\s\u00A0]+)([^\s\u00A0])/g,
-            function(match, separator, firstLetter) {
-                return (
-                    separator +
-                    firstLetter.toLocaleUpperCase("es-ES")
-                );
-            }
-        );
-}
-
-
-/* =========================================================
-   DIARY
-========================================================= */
-
-/*
-    Limpieza de una línea del Diary antes de comprobar
-    si es el separador.
-*/
-function normalizeDiarySeparatorLine(line) {
-    return String(line ?? "")
-        /*
-            Eliminamos caracteres invisibles que podrían hacer
-            que "…" no coincida exactamente.
-        */
-        .replace(/[\uFEFF\u200B\u200C\u200D\u2060]/g, "")
-        /*
-            Convertimos NBSP a espacio normal.
-        */
-        .replace(/\u00A0/g, " ")
-        .trim();
-}
-
-
-/*
-    Determina si una línea del Diary significa:
-        <hr>
-
-    Se aceptan:
-        ...
-        …
-        ⋯
-
-    También se aceptan tres o más puntos ASCII.
-*/
-function isDiarySeparator(line) {
-    const normalized = normalizeDiarySeparatorLine(line);
-
-    return (
-        normalized === "..." ||
-        normalized === "…" ||
-        normalized === "⋯" ||
-        /^\.\.\.+$/.test(normalized)
-    );
-}
-
-
-/*
-    ESTA es la única función que convierte el contenido
-    del Diary en HTML.
-
-    Regla fundamental:
-
-        texto
-        ...
-        texto
-
-    produce:
-
-        <p>texto</p>
-        <hr>
-        <p>texto</p>
-
-    El <hr> jamás pasa por el código que genera <p>.
-*/
-function formatDiaryToHtml(text) {
-
-    const lines =
-        normalizeLineEndings(text).split("\n");
-
-    const output = [];
-
-    lines.forEach(function(line) {
-
-        /*
-            PRIMERO comprobamos el separador.
-
-            Esto es deliberadamente antes de crear el <p>.
-        */
-        if (isDiarySeparator(line)) {
-            output.push("<hr>");
-            return;
-        }
-
-        const trimmed =
-            String(line ?? "").trim();
-
-        /*
-            Las líneas vacías no generan nada.
-        */
-        if (!trimmed) {
-            return;
-        }
-
-        /*
-            Texto normal del Diary.
-            NO se capitaliza.
-        */
-        output.push(
-            "<p>" +
-            escapeHtmlText(trimmed) +
-            "</p>"
-        );
-    });
-
-    return output.join("\n");
-}
-
-
-/* =========================================================
-   DATOS
-========================================================= */
-
-let items = [];
-let editingIndex = -1;
-
-
-/* =========================================================
-   STORAGE
-========================================================= */
-
-function loadItems() {
-
-    try {
-
-        const raw =
-            localStorage.getItem(STORAGE_KEY);
-
-        if (!raw) {
-            items = [];
-            return;
-        }
-
-        const parsed =
-            JSON.parse(raw);
-
-        if (!Array.isArray(parsed)) {
-            items = [];
-            return;
-        }
-
-        items = parsed;
-
-    } catch (error) {
-
-        console.error(
-            "No se pudieron cargar los elementos:",
-            error
-        );
-
-        items = [];
+    function $(id) {
+        return document.getElementById(id);
     }
-}
-
-
-function saveItems() {
-
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(items)
-    );
-}
-
-
-/* =========================================================
-   DESCRIPCIÓN DE ELEMENTOS
-========================================================= */
-
-function getTypeLabel(type) {
-
-    const labels = {
-        blank: "Blank",
-        polaroid: "Polaroid",
-        sticky: "Sticky Note",
-        "sticky-fecha": "Sticky + Fecha",
-        "sticky-png": "Sticky PNG",
-        ticket: "Ticket",
-        "png-frame": "PNG Frame",
-        diary: "Diary Notes",
-        "film-strip": "Film Strip"
-    };
-
-    return labels[type] || type;
-}
-
-
-function getItemDescription(item) {
-
-    if (!item) {
-        return "";
-    }
-
-    if (item.type === "blank") {
-        return "Elemento vacío";
-    }
-
-    if (item.type === "sticky-png") {
-        return item.alt || "(sin ALT)";
-    }
-
-    if (item.type === "polaroid") {
-        return item.caption || "(sin texto)";
-    }
-
-    if (item.type === "sticky") {
-        return item.text || "(sin texto)";
-    }
-
-    if (item.type === "sticky-fecha") {
-        return item.text || item.date || "(sin contenido)";
-    }
-
-    if (item.type === "ticket") {
-        return item.alt || item.image || "(sin imagen)";
-    }
-
-    if (item.type === "png-frame") {
-        return item.alt || item.image || "(sin imagen)";
-    }
-
-    if (item.type === "diary") {
-        const firstText =
-            normalizeLineEndings(item.text || "")
-                .split("\n")
-                .find(function(line) {
-                    return (
-                        line.trim() &&
-                        !isDiarySeparator(line)
-                    );
-                });
-
-        return firstText || "Diary vacío";
-    }
-
-    if (item.type === "film-strip") {
-        return item.name || "Sin nombre";
-    }
-
-    return "";
-}
-
-
-/* =========================================================
-   FORMULARIO
-========================================================= */
-
-const allFieldTypes = [
-    "blank",
-    "polaroid",
-    "sticky",
-    "sticky-fecha",
-    "sticky-png",
-    "ticket",
-    "png-frame",
-    "diary",
-    "film-strip"
-];
-
-
-function updateTypeFields() {
-
-    const selectedType =
-        $("elementType").value;
-
-    allFieldTypes.forEach(function(type) {
-
-        const group =
-            $("fields-" + type);
-
-        if (!group) {
-            return;
-        }
-
-        group.classList.toggle(
-            "hidden",
-            type !== selectedType
-        );
-    });
-}
-
-
-function getFormData() {
-
-    const type =
-        $("elementType").value;
-
-    if (type === "blank") {
-        return {
-            type: "blank"
-        };
-    }
-
-
-    if (type === "polaroid") {
-
-        /*
-            Una sola línea.
-            Si por cualquier motivo se pega contenido
-            con saltos de línea, solamente conservamos
-            la primera.
-        */
-        const captionRaw =
-            $("polaroidCaption").value;
-
-        const caption =
-            normalizeLineEndings(captionRaw)
-                .split("\n")[0]
-                .trim();
-
-        return {
-            type: "polaroid",
-            image: $("polaroidImage").value.trim(),
-            alt: $("polaroidAlt").value.trim(),
-            caption: caption
-        };
-    }
-
-
-    if (type === "sticky") {
-
-        return {
-            type: "sticky",
-            text: $("stickyText").value
-        };
-    }
-
-
-    if (type === "sticky-fecha") {
-
-        return {
-            type: "sticky-fecha",
-            text: $("stickyFechaText").value,
-            date: $("stickyFechaDate").value.trim()
-        };
-    }
-
-
-    if (type === "sticky-png") {
-
-        return {
-            type: "sticky-png",
-            image: $("stickyPngImage").value.trim(),
-            alt: $("stickyPngAlt").value.trim()
-        };
-    }
-
-
-    if (type === "ticket") {
-
-        return {
-            type: "ticket",
-            image: $("ticketImage").value.trim(),
-            alt: $("ticketAlt").value.trim()
-        };
-    }
-
-
-    if (type === "png-frame") {
-
-        const scale =
-            parseFloat($("pngFrameScale").value);
-
-        return {
-            type: "png-frame",
-            image: $("pngFrameImage").value.trim(),
-            alt: $("pngFrameAlt").value.trim(),
-            scale: Number.isFinite(scale)
-                ? scale
-                : 1.4
-        };
-    }
-
-
-    if (type === "diary") {
-
-        return {
-            type: "diary",
-            text: $("diaryText").value
-        };
-    }
-
-
-    if (type === "film-strip") {
-
-        return {
-            type: "film-strip",
-            name: $("filmName").value.trim(),
-
-            images: [
-                $("filmImage1").value.trim(),
-                $("filmImage2").value.trim(),
-                $("filmImage3").value.trim()
-            ],
-
-            alts: [
-                $("filmAlt1").value.trim(),
-                $("filmAlt2").value.trim(),
-                $("filmAlt3").value.trim()
-            ]
-        };
-    }
-
-
-    return {
-        type: type
-    };
-}
-
-
-function clearForm() {
-
-    editingIndex = -1;
-
-    $("formTitle").textContent =
-        "Crear elemento";
-
-    $("saveElementButton").textContent =
-        "Añadir elemento";
-
-    $("cancelEditButton")
-        .classList.add("hidden");
-
-    $("elementType").value =
-        "blank";
-
-
-    $("polaroidImage").value = "";
-    $("polaroidAlt").value = "";
-    $("polaroidCaption").value = "";
-
-    $("stickyText").value = "";
-
-    $("stickyFechaText").value = "";
-    $("stickyFechaDate").value = "";
-
-    $("stickyPngImage").value = "";
-    $("stickyPngAlt").value = "";
-
-    $("ticketImage").value = "";
-    $("ticketAlt").value = "";
-
-    $("pngFrameImage").value = "";
-    $("pngFrameAlt").value = "";
-    $("pngFrameScale").value = "1.4";
-
-    $("diaryText").value = "";
-
-    $("filmName").value = "";
-    $("filmImage1").value = "";
-    $("filmAlt1").value = "";
-    $("filmImage2").value = "";
-    $("filmAlt2").value = "";
-    $("filmImage3").value = "";
-    $("filmAlt3").value = "";
-
-    updateTypeFields();
-
-    setStatus(
-        "formStatus",
-        ""
-    );
-}
-
-
-function editItem(index) {
-
-    const item =
-        items[index];
-
-    if (!item) {
-        return;
-    }
-
-    editingIndex = index;
-
-    $("formTitle").textContent =
-        "Editar elemento";
-
-    $("saveElementButton").textContent =
-        "Guardar cambios";
-
-    $("cancelEditButton")
-        .classList.remove("hidden");
-
-
-    $("elementType").value =
-        item.type || "blank";
 
 
     /*
-        Limpiamos todos primero.
-    */
-
-    $("polaroidImage").value = "";
-    $("polaroidAlt").value = "";
-    $("polaroidCaption").value = "";
-
-    $("stickyText").value = "";
-
-    $("stickyFechaText").value = "";
-    $("stickyFechaDate").value = "";
-
-    $("stickyPngImage").value = "";
-    $("stickyPngAlt").value = "";
-
-    $("ticketImage").value = "";
-    $("ticketAlt").value = "";
-
-    $("pngFrameImage").value = "";
-    $("pngFrameAlt").value = "";
-    $("pngFrameScale").value = "1.4";
-
-    $("diaryText").value = "";
-
-    $("filmName").value = "";
-    $("filmImage1").value = "";
-    $("filmAlt1").value = "";
-    $("filmImage2").value = "";
-    $("filmAlt2").value = "";
-    $("filmImage3").value = "";
-    $("filmAlt3").value = "";
-
-
-    /*
-        Cargamos según tipo.
-    */
-
-    if (item.type === "polaroid") {
-
-        $("polaroidImage").value =
-            item.image || "";
-
-        $("polaroidAlt").value =
-            item.alt || "";
-
-        $("polaroidCaption").value =
-            item.caption || "";
-    }
-
-
-    if (item.type === "sticky") {
-
-        $("stickyText").value =
-            item.text || "";
-    }
-
-
-    if (item.type === "sticky-fecha") {
-
-        $("stickyFechaText").value =
-            item.text || "";
-
-        $("stickyFechaDate").value =
-            item.date || "";
-    }
-
-
-    if (item.type === "sticky-png") {
-
-        $("stickyPngImage").value =
-            item.image || "";
-
-        $("stickyPngAlt").value =
-            item.alt || "";
-    }
-
-
-    if (item.type === "ticket") {
-
-        $("ticketImage").value =
-            item.image || "";
-
-        $("ticketAlt").value =
-            item.alt || "";
-    }
-
-
-    if (item.type === "png-frame") {
-
-        $("pngFrameImage").value =
-            item.image || "";
-
-        $("pngFrameAlt").value =
-            item.alt || "";
-
-        $("pngFrameScale").value =
-            item.scale ?? 1.4;
-    }
-
-
-    if (item.type === "diary") {
-
-        $("diaryText").value =
-            item.text || "";
-    }
-
-
-    if (item.type === "film-strip") {
-
-        $("filmName").value =
-            item.name || "";
-
-        const images =
-            Array.isArray(item.images)
-                ? item.images
-                : [];
-
-        const alts =
-            Array.isArray(item.alts)
-                ? item.alts
-                : [];
-
-        $("filmImage1").value =
-            images[0] || "";
-
-        $("filmAlt1").value =
-            alts[0] || "";
-
-        $("filmImage2").value =
-            images[1] || "";
-
-        $("filmAlt2").value =
-            alts[1] || "";
-
-        $("filmImage3").value =
-            images[2] || "";
-
-        $("filmAlt3").value =
-            alts[2] || "";
-    }
-
-
-    updateTypeFields();
-
-    /*
-        Llevamos el formulario arriba para que al editar
-        un elemento creado mediante + se vea inmediatamente.
-    */
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-    setStatus(
-        "formStatus",
-        "Editando el elemento " + (index + 1) + "."
-    );
-}
-
-
-/* =========================================================
-   AÑADIR / EDITAR
-========================================================= */
-
-function saveFormElement() {
-
-    const data =
-        getFormData();
-
-    /*
-        Si estamos editando un Blank y elegimos otro tipo,
-        simplemente se sustituye por el nuevo tipo.
-    */
-
-    if (editingIndex >= 0) {
-
-        items[editingIndex] =
-            data;
-
-        saveItems();
-        renderItems();
-        generateOutput();
-
-        setStatus(
-            "formStatus",
-            "Elemento actualizado."
-        );
-
-        /*
-            Terminamos la edición pero dejamos el formulario
-            limpio para crear otro.
-        */
-        clearForm();
-
-        return;
-    }
-
-
-    items.push(data);
-
-    saveItems();
-    renderItems();
-    generateOutput();
-
-    setStatus(
-        "formStatus",
-        "Elemento añadido."
-    );
-
-    clearForm();
-}
-
-
-/*
-    Crea un Blank inmediatamente después de un índice concreto.
-
-    Esta es la función que utiliza el botón +.
-*/
-function insertBlankAfter(index) {
-
-    const blank = {
-        type: "blank"
-    };
-
-    items.splice(
-        index + 1,
-        0,
-        blank
-    );
-
-    saveItems();
-    renderItems();
-    generateOutput();
-
-    /*
-        Abrimos inmediatamente el Blank en edición.
-        Así el usuario puede elegir el tipo y meter los datos.
-    */
-    editItem(index + 1);
-
-    /*
-        Después de renderizar y editar, intentamos localizar
-        la nueva fila para mantenerla visible en el scroll.
-    */
-    requestAnimationFrame(function() {
-
-        const rows =
-            $("itemsList")
-                .querySelectorAll(".item-row");
-
-        const row =
-            rows[index + 1];
-
-        if (row) {
-
-            row.scrollIntoView({
-                behavior: "smooth",
-                block: "nearest"
-            });
+     * ============================================================
+     * UTILIDADES
+     * ============================================================
+     */
+
+    function makeId() {
+
+        if (
+            typeof crypto !== "undefined" &&
+            crypto.randomUUID
+        ) {
+            return crypto.randomUUID();
         }
 
-    });
-}
 
-
-/* =========================================================
-   RENDER DE LISTA
-========================================================= */
-
-function renderItems() {
-
-    const container =
-        $("itemsList");
-
-    container.innerHTML = "";
-
-    $("elementsCount").textContent =
-        items.length === 1
-            ? "1 elemento"
-            : items.length + " elementos";
-
-
-    if (!items.length) {
-
-        const empty =
-            document.createElement("div");
-
-        empty.className =
-            "empty-list";
-
-        empty.textContent =
-            "No hay elementos creados.";
-
-        container.appendChild(empty);
-
-        return;
+        return (
+            "item-" +
+            Date.now() +
+            "-" +
+            Math.random()
+                .toString(36)
+                .slice(2)
+        );
     }
 
 
-    items.forEach(function(item, index) {
+    function normalizeLineEndings(value) {
 
-        const row =
-            document.createElement("div");
-
-        row.className =
-            "item-row";
-
-
-        const element =
-            document.createElement("div");
-
-        element.className =
-            "item";
-
-        if (item.type === "blank") {
-            element.classList.add("blank-item");
-        }
-
-        /*
-            Guardamos la referencia al objeto actual.
-            El drag/drop la utiliza.
-        */
-        element._item =
-            item;
+        return String(value ?? "")
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n");
+    }
 
 
-        const number =
-            document.createElement("div");
+    function escapeHtmlText(value) {
 
-        number.className =
-            "item-number";
-
-        number.textContent =
-            String(index + 1);
-
-
-        const info =
-            document.createElement("div");
-
-        info.className =
-            "item-info";
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
 
 
-        const type =
-            document.createElement("div");
+    function escapeHtmlAttribute(value) {
 
-        type.className =
-            "item-type";
-
-        type.textContent =
-            getTypeLabel(item.type);
-
-
-        const description =
-            document.createElement("div");
-
-        description.className =
-            "item-description";
-
-        description.textContent =
-            getItemDescription(item);
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
 
 
-        info.appendChild(type);
-        info.appendChild(description);
+    function capitalizeWords(value) {
 
-
-        const actions =
-            document.createElement("div");
-
-        actions.className =
-            "item-actions";
-
-
-        /*
-            EDITAR
-        */
-
-        const editButton =
-            document.createElement("button");
-
-        editButton.type =
-            "button";
-
-        editButton.title =
-            "Editar";
-
-        editButton.innerHTML =
-            "<span>Editar</span>";
-
-        editButton.addEventListener(
-            "click",
-            function(event) {
-
-                event.stopPropagation();
-
-                const currentIndex =
-                    items.indexOf(element._item);
-
-                if (currentIndex >= 0) {
-                    editItem(currentIndex);
-                }
-            }
-        );
-
-
-        /*
-            DUPLICAR
-        */
-
-        const duplicateButton =
-            document.createElement("button");
-
-        duplicateButton.type =
-            "button";
-
-        duplicateButton.title =
-            "Duplicar";
-
-        duplicateButton.innerHTML =
-            "<span>Duplicar</span>";
-
-        duplicateButton.addEventListener(
-            "click",
-            function(event) {
-
-                event.stopPropagation();
-
-                const currentIndex =
-                    items.indexOf(element._item);
-
-                if (currentIndex < 0) {
-                    return;
-                }
-
-                const copy =
-                    JSON.parse(
-                        JSON.stringify(
-                            items[currentIndex]
-                        )
-                    );
-
-                items.splice(
-                    currentIndex + 1,
-                    0,
-                    copy
-                );
-
-                saveItems();
-                renderItems();
-                generateOutput();
-
-                setStatus(
-                    "formStatus",
-                    "Elemento duplicado."
-                );
-            }
-        );
-
-
-        /*
-            ELIMINAR
-        */
-
-        const deleteButton =
-            document.createElement("button");
-
-        deleteButton.type =
-            "button";
-
-        deleteButton.title =
-            "Eliminar";
-
-        deleteButton.innerHTML =
-            "<span>Eliminar</span>";
-
-        deleteButton.addEventListener(
-            "click",
-            function(event) {
-
-                event.stopPropagation();
-
-                const currentIndex =
-                    items.indexOf(element._item);
-
-                if (currentIndex < 0) {
-                    return;
-                }
-
-                items.splice(
-                    currentIndex,
-                    1
-                );
-
-                if (
-                    editingIndex === currentIndex
+        return String(value ?? "")
+            .toLocaleLowerCase("es-ES")
+            .replace(
+                /(^|[\s\u00A0]+)([^\s\u00A0])/g,
+                function(
+                    match,
+                    separator,
+                    firstLetter
                 ) {
-                    clearForm();
+
+                    return (
+                        separator +
+                        firstLetter.toLocaleUpperCase("es-ES")
+                    );
                 }
-
-                saveItems();
-                renderItems();
-                generateOutput();
-
-                setStatus(
-                    "formStatus",
-                    "Elemento eliminado."
-                );
-            }
-        );
-
-
-        actions.appendChild(editButton);
-        actions.appendChild(duplicateButton);
-        actions.appendChild(deleteButton);
-
-
-        element.appendChild(number);
-        element.appendChild(info);
-        element.appendChild(actions);
-
-
-        /*
-            BOTÓN + FUERA DEL ELEMENTO
-
-            Este botón NO está dentro de .item.
-        */
-
-        const plusButton =
-            document.createElement("button");
-
-        plusButton.type =
-            "button";
-
-        plusButton.className =
-            "insert-after";
-
-        plusButton.title =
-            "Crear un elemento después de este";
-
-        plusButton.setAttribute(
-            "aria-label",
-            "Crear elemento después"
-        );
-
-        plusButton.textContent =
-            "+";
-
-        plusButton.addEventListener(
-            "click",
-            function(event) {
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                const currentIndex =
-                    items.indexOf(element._item);
-
-                if (currentIndex >= 0) {
-                    insertBlankAfter(currentIndex);
-                }
-            }
-        );
-
-
-        row.appendChild(element);
-        row.appendChild(plusButton);
-
-        container.appendChild(row);
-
-    });
-
-
-    initializeDragAndDrop();
-}
-
-
-/* =========================================================
-   DRAG & DROP FLUIDO
-========================================================= */
-
-let dragState = null;
-
-
-function initializeDragAndDrop() {
-
-    const rows =
-        $("itemsList")
-            .querySelectorAll(".item-row");
-
-
-    rows.forEach(function(row) {
-
-        const item =
-            row.querySelector(".item");
-
-        if (!item) {
-            return;
-        }
-
-        item.addEventListener(
-            "pointerdown",
-            onPointerDown
-        );
-
-    });
-}
-
-
-function onPointerDown(event) {
-
-    /*
-        No iniciamos drag al pulsar botones.
-    */
-    if (
-        event.target.closest("button")
-    ) {
-        return;
+            );
     }
-
-    if (
-        event.pointerType === "mouse" &&
-        event.button !== 0
-    ) {
-        return;
-    }
-
-
-    const item =
-        event.currentTarget;
-
-    const row =
-        item.closest(".item-row");
-
-    if (!row) {
-        return;
-    }
-
-
-    dragState = {
-        item: item,
-        row: row,
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        startY: event.clientY,
-        dragging: false,
-        placeholder: null,
-        originalNextSibling: row.nextElementSibling,
-        originalParent: row.parentElement,
-        offsetX: 0,
-        offsetY: 0
-    };
-
-
-    try {
-        item.setPointerCapture(
-            event.pointerId
-        );
-    } catch (error) {
-        /* no-op */
-    }
-
-
-    item.addEventListener(
-        "pointermove",
-        onPointerMove
-    );
-
-    item.addEventListener(
-        "pointerup",
-        onPointerUp
-    );
-
-    item.addEventListener(
-        "pointercancel",
-        onPointerCancel
-    );
-}
-
-
-function onPointerMove(event) {
-
-    if (!dragState) {
-        return;
-    }
-
-    if (
-        event.pointerId !==
-        dragState.pointerId
-    ) {
-        return;
-    }
-
-
-    const dx =
-        event.clientX -
-        dragState.startX;
-
-    const dy =
-        event.clientY -
-        dragState.startY;
 
 
     /*
-        Umbral para evitar que un click se convierta
-        accidentalmente en drag.
-    */
-    if (!dragState.dragging) {
+     * ============================================================
+     * DIARY NOTES
+     * ============================================================
+     */
 
-        if (
-            Math.hypot(dx, dy) < 5
-        ) {
-            return;
-        }
+    function normalizeDiaryLine(line) {
 
-        startDragging(
-            event
-        );
-    }
-
-
-    updateDraggedPosition(
-        event.clientX,
-        event.clientY
-    );
-
-    updatePlaceholder(
-        event.clientY
-    );
-}
-
-
-function startDragging(event) {
-
-    const state =
-        dragState;
-
-    const item =
-        state.item;
-
-    const rect =
-        item.getBoundingClientRect();
-
-
-    state.dragging = true;
-
-    state.offsetX =
-        event.clientX -
-        rect.left;
-
-    state.offsetY =
-        event.clientY -
-        rect.top;
-
-
-    /*
-        Placeholder con el mismo tamaño.
-    */
-
-    const placeholder =
-        document.createElement("div");
-
-    placeholder.className =
-        "drag-placeholder";
-
-    placeholder.style.height =
-        rect.height + "px";
-
-    placeholder.style.width =
-        rect.width + "px";
-
-    state.placeholder =
-        placeholder;
-
-
-    /*
-        Insertamos el placeholder donde estaba
-        el elemento.
-    */
-
-    state.originalParent.insertBefore(
-        placeholder,
-        state.row
-    );
-
-
-    /*
-        El elemento se saca visualmente del flujo.
-    */
-
-    item.style.width =
-        rect.width + "px";
-
-    item.style.position =
-        "fixed";
-
-    item.style.left =
-        rect.left + "px";
-
-    item.style.top =
-        rect.top + "px";
-
-    item.style.margin =
-        "0";
-
-    item.style.pointerEvents =
-        "none";
-
-    item.style.zIndex =
-        "1001";
-
-
-    item.classList.add(
-        "dragging"
-    );
-
-    document.body.classList.add(
-        "drag-active"
-    );
-
-
-    /*
-        El row conserva su estructura para que el botón +
-        siga perteneciendo a él, pero visualmente dejamos
-        que el item flotante sea quien se mueva.
-    */
-
-    state.row.style.height =
-        rect.height + "px";
-}
-
-
-function updateDraggedPosition(
-    clientX,
-    clientY
-) {
-
-    if (
-        !dragState ||
-        !dragState.dragging
-    ) {
-        return;
-    }
-
-    const item =
-        dragState.item;
-
-
-    item.style.left =
-        (
-            clientX -
-            dragState.offsetX
-        ) + "px";
-
-    item.style.top =
-        (
-            clientY -
-            dragState.offsetY
-        ) + "px";
-}
-
-
-function updatePlaceholder(clientY) {
-
-    const state =
-        dragState;
-
-    if (
-        !state ||
-        !state.placeholder
-    ) {
-        return;
-    }
-
-
-    const container =
-        $("itemsList");
-
-    const rows =
-        Array.from(
-            container.querySelectorAll(
-                ".item-row"
+        return String(line ?? "")
+            .replace(
+                /[\uFEFF\u200B\u200C\u200D\u2060]/g,
+                ""
             )
-        ).filter(function(row) {
-            return row !== state.row;
+            .replace(/\u00A0/g, " ")
+            .trim();
+    }
+
+
+    function isDiarySeparator(line) {
+
+        const normalized =
+            normalizeDiaryLine(line);
+
+
+        return (
+            normalized === "..." ||
+            normalized === "…" ||
+            normalized === "⋯"
+        );
+    }
+
+
+    function formatDiaryToHtml(text) {
+
+        const lines =
+            normalizeLineEndings(text)
+                .split("\n");
+
+
+        const output = [];
+
+
+        lines.forEach(function(line) {
+
+            const normalized =
+                normalizeDiaryLine(line);
+
+
+            /*
+             * EL SEPARADOR SE COMPRUEBA ANTES QUE NADA.
+             */
+
+            if (isDiarySeparator(normalized)) {
+
+                output.push("<hr>");
+
+                return;
+            }
+
+
+            /*
+             * Línea vacía = nada.
+             */
+
+            if (!normalized) {
+                return;
+            }
+
+
+            /*
+             * Texto normal = párrafo.
+             */
+
+            output.push(
+                "<p>" +
+                escapeHtmlText(normalized) +
+                "</p>"
+            );
+
         });
 
 
-    let inserted = false;
-
-
-    for (const row of rows) {
-
-        const rect =
-            row.getBoundingClientRect();
-
-        const midpoint =
-            rect.top +
-            rect.height / 2;
-
-
-        if (
-            clientY < midpoint
-        ) {
-
-            if (
-                row.previousElementSibling !==
-                state.placeholder
-            ) {
-
-                row.parentNode.insertBefore(
-                    state.placeholder,
-                    row
-                );
-            }
-
-            inserted = true;
-            break;
-        }
+        return output.join("\n");
     }
 
 
-    if (!inserted) {
+    function importDiary(li) {
 
-        /*
-            Lo colocamos al final.
-        */
+        const directChildren =
+            Array.from(li.children);
 
-        container.appendChild(
-            state.placeholder
-        );
-    }
-}
 
+        const diaryMarker =
+            directChildren.some(function(element) {
 
-function cleanupDragStyles() {
+                const tag =
+                    element.tagName.toLowerCase();
 
-    if (!dragState) {
-        return;
-    }
 
-    const item =
-        dragState.item;
-
-    item.style.width = "";
-    item.style.position = "";
-    item.style.left = "";
-    item.style.top = "";
-    item.style.margin = "";
-    item.style.pointerEvents = "";
-    item.style.zIndex = "";
-
-    dragState.row.style.height = "";
-
-    item.classList.remove(
-        "dragging"
-    );
-
-    document.body.classList.remove(
-        "drag-active"
-    );
-}
-
-
-function onPointerUp(event) {
-
-    if (!dragState) {
-        return;
-    }
-
-    if (
-        event.pointerId !==
-        dragState.pointerId
-    ) {
-        return;
-    }
-
-
-    if (!dragState.dragging) {
-
-        removePointerListeners();
-
-        dragState = null;
-
-        return;
-    }
-
-
-    finishDrag();
-}
-
-
-function finishDrag() {
-
-    const state =
-        dragState;
-
-    const placeholder =
-        state.placeholder;
-
-
-    /*
-        La posición FINAL la determina el placeholder.
-
-        No volvemos a calcularla con el puntero al soltar.
-        Esto evita que el elemento salte a otra posición.
-    */
-
-    if (
-        placeholder &&
-        placeholder.parentNode
-    ) {
-
-        placeholder.parentNode.insertBefore(
-            state.row,
-            placeholder
-        );
-
-        placeholder.remove();
-    }
-
-
-    /*
-        Ahora reconstruimos items siguiendo exactamente
-        el orden real del DOM.
-    */
-
-    const orderedItems =
-        Array.from(
-            $("itemsList")
-                .querySelectorAll(".item-row .item")
-        ).map(function(itemElement) {
-            return itemElement._item;
-        });
-
-
-    items =
-        orderedItems.filter(Boolean);
-
-
-    saveItems();
-    generateOutput();
-
-
-    /*
-        Restauramos estilos.
-    */
-
-    cleanupDragStyles();
-    removePointerListeners();
-
-
-    renderItems();
-    saveItems();
-    generateOutput();
-
-    dragState = null;
-}
-
-
-function cancelDrag() {
-
-    if (!dragState) {
-        return;
-    }
-
-    const state =
-        dragState;
-
-
-    /*
-        Si había placeholder, devolvemos el row
-        a su posición original.
-    */
-
-    if (
-        state.placeholder &&
-        state.placeholder.parentNode
-    ) {
-
-        state.placeholder.parentNode.insertBefore(
-            state.row,
-            state.placeholder
-        );
-
-        state.placeholder.remove();
-    }
-
-
-    cleanupDragStyles();
-    removePointerListeners();
-
-    dragState = null;
-}
-
-
-function onPointerCancel() {
-    cancelDrag();
-}
-
-
-function removePointerListeners() {
-
-    if (!dragState) {
-        return;
-    }
-
-    const item =
-        dragState.item;
-
-    item.removeEventListener(
-        "pointermove",
-        onPointerMove
-    );
-
-    item.removeEventListener(
-        "pointerup",
-        onPointerUp
-    );
-
-    item.removeEventListener(
-        "pointercancel",
-        onPointerCancel
-    );
-}
-
-
-window.addEventListener(
-    "blur",
-    function() {
-        if (dragState) {
-            cancelDrag();
-        }
-    }
-);
-
-
-/* =========================================================
-   GENERACIÓN HTML
-========================================================= */
-
-function elementToHtml(item) {
-
-    if (!item) {
-        return "";
-    }
-
-
-    /*
-        BLANK
-
-        Un Blank no genera contenido.
-        Se utiliza únicamente como elemento provisional
-        que luego se puede editar.
-    */
-
-    if (item.type === "blank") {
-
-        return [
-            "<li>",
-            "</li>"
-        ].join("\n");
-    }
-
-
-    /*
-        POLAROID
-
-        SOLO UNA línea de texto.
-    */
-
-    if (item.type === "polaroid") {
-
-        const caption =
-            capitalizeWords(
-                normalizeLineEndings(
-                    item.caption || ""
-                )
-                    .split("\n")[0]
-                    .trim()
-            );
-
-
-        const image =
-            escapeHtmlAttribute(
-                item.image || ""
-            );
-
-        const alt =
-            escapeHtmlAttribute(
-                item.alt || ""
-            );
-
-
-        return [
-            "<li>",
-            '    <p><img src="' +
-                image +
-                '" alt="' +
-                alt +
-                '"></p>',
-            "    <ul>",
-            "        <li>" +
-                escapeHtmlText(caption) +
-                "</li>",
-            "    </ul>",
-            "</li>"
-        ].join("\n");
-    }
-
-
-    /*
-        STICKY
-    */
-
-    if (item.type === "sticky") {
-
-        const text =
-            capitalizeWords(
-                item.text || ""
-            );
-
-
-        return [
-            "<li>",
-            "    <p>" +
-                escapeHtmlText(text) +
-                "</p>",
-            "</li>"
-        ].join("\n");
-    }
-
-
-    /*
-        STICKY + FECHA
-    */
-
-    if (item.type === "sticky-fecha") {
-
-        const text =
-            capitalizeWords(
-                item.text || ""
-            );
-
-        const date =
-            item.date || "";
-
-
-        return [
-            "<li>",
-            "    <p>" +
-                escapeHtmlText(text) +
-                "</p>",
-            "    <ul>",
-            "        <li>" +
-                escapeHtmlText(date) +
-                "</li>",
-            "    </ul>",
-            "</li>"
-        ].join("\n");
-    }
-
-
-    /*
-        STICKY PNG
-    */
-
-    if (item.type === "sticky-png") {
-
-        const image =
-            escapeHtmlAttribute(
-                item.image || ""
-            );
-
-        const alt =
-            escapeHtmlAttribute(
-                item.alt || ""
-            );
-
-
-        return [
-            "<li>",
-            '    <img src="' +
-                image +
-                '" class="sticky-drawing" alt="' +
-                alt +
-                '">',
-            "    <p></p>",
-            "</li>"
-        ].join("\n");
-    }
-
-
-    /*
-        TICKET
-    */
-
-    if (item.type === "ticket") {
-
-        const image =
-            escapeHtmlAttribute(
-                item.image || ""
-            );
-
-        const alt =
-            escapeHtmlAttribute(
-                item.alt || ""
-            );
-
-
-        return [
-            '<li class="ticket-frame">',
-            '    <img src="' +
-                image +
-                '" alt="' +
-                alt +
-                '">',
-            "</li>"
-        ].join("\n");
-    }
-
-
-    /*
-        PNG FRAME
-    */
-
-    if (item.type === "png-frame") {
-
-        const image =
-            escapeHtmlAttribute(
-                item.image || ""
-            );
-
-        const alt =
-            escapeHtmlAttribute(
-                item.alt || ""
-            );
-
-        const scale =
-            Number.isFinite(
-                Number(item.scale)
-            )
-                ? Number(item.scale)
-                : 1.4;
-
-
-        return [
-            '<li class="png-frame" style="--png-scale: ' +
-                escapeHtmlAttribute(scale) +
-                ';">',
-            '    <img src="' +
-                image +
-                '" alt="' +
-                alt +
-                '">',
-            "</li>"
-        ].join("\n");
-    }
-
-
-    /*
-        DIARY
-
-        IMPORTANTE:
-        No hay ningún otro código que convierta
-        Diary en párrafos.
-
-        formatDiaryToHtml() decide si cada línea es:
-            <p>...</p>
-        o:
-            <hr>
-
-        Por tanto <hr> queda completamente fuera
-        del párrafo.
-    */
-
-    if (item.type === "diary") {
-
-        const diaryHtml =
-            formatDiaryToHtml(
-                item.text || ""
-            );
-
-
-        return [
-            "<li>",
-            '    <img src="' +
-                DIARY_PIXEL_GIF +
-                '" alt="Diario">',
-            diaryHtml
-                ? "    " +
-                    diaryHtml.replace(
-                        /\n/g,
-                        "\n    "
-                    )
-                : "",
-            "</li>"
-        ]
-            .filter(function(line) {
-                return line !== "";
-            })
-            .join("\n");
-    }
-
-
-    /*
-        FILM STRIP
-    */
-
-    if (item.type === "film-strip") {
-
-        const images =
-            Array.isArray(item.images)
-                ? item.images
-                : [];
-
-        const alts =
-            Array.isArray(item.alts)
-                ? item.alts
-                : [];
-
-
-        const frames = [];
-
-
-        for (let i = 0; i < 3; i++) {
-
-            const image =
-                escapeHtmlAttribute(
-                    images[i] || ""
-                );
-
-            const alt =
-                escapeHtmlAttribute(
-                    alts[i] || ""
-                );
-
-
-            frames.push(
-                [
-                    '    <div class="film-frame">',
-                    '        <img src="' +
-                        image +
-                        '" alt="' +
-                        alt +
-                        '">',
-                    "    </div>"
-                ].join("\n")
-            );
-        }
-
-
-        return [
-            '<li class="film-strip">',
-            frames.join("\n"),
-            "</li>"
-        ].join("\n");
-    }
-
-
-    return "";
-}
-
-
-function generateOutput() {
-
-    const parts = [];
-
-
-    parts.push(
-        '<section class="tiny-photos">'
-    );
-
-    parts.push(
-        "    <ul>"
-    );
-
-
-    items.forEach(function(item) {
-
-        const html =
-            elementToHtml(item);
-
-        if (!html) {
-            return;
-        }
-
-        parts.push(
-            html
-                .split("\n")
-                .map(function(line) {
-                    return "        " + line;
-                })
-                .join("\n")
-        );
-    });
-
-
-    parts.push(
-        "    </ul>"
-    );
-
-    parts.push(
-        "</section>"
-    );
-
-
-    $("htmlOutput").value =
-        parts.join("\n");
-}
-
-
-/* =========================================================
-   IMPORTACIÓN
-========================================================= */
-
-function findTinyPhotosList(doc) {
-
-    const section =
-        doc.querySelector(
-            "section.tiny-photos"
-        );
-
-
-    if (section) {
-
-        const directUl =
-            Array.from(
-                section.children
-            ).find(function(child) {
                 return (
-                    child.tagName &&
-                    child.tagName.toLowerCase() ===
-                    "ul"
+                    tag === "hr" ||
+                    (
+                        tag === "img" &&
+                        (
+                            element.getAttribute("alt") || ""
+                        ).toLowerCase() === "diario"
+                    )
                 );
+
             });
 
 
-        if (directUl) {
-            return directUl;
+        if (!diaryMarker) {
+            return null;
         }
 
 
-        const descendantUl =
-            section.querySelector("ul");
+        const hasDiaryStructure =
+            directChildren.some(function(element) {
 
-        if (descendantUl) {
-            return descendantUl;
+                const tag =
+                    element.tagName.toLowerCase();
+
+
+                return (
+                    tag === "p" ||
+                    tag === "hr"
+                );
+
+            });
+
+
+        if (!hasDiaryStructure) {
+            return null;
         }
-    }
 
 
-    const directUl =
-        doc.querySelector("ul");
-
-    return directUl || null;
-}
+        const parts = [];
 
 
-/*
-    Importa Diary mirando SOLO hijos directos.
-
-    <p>Texto</p>
-    <hr>
-    <p>Texto</p>
-
-    se convierte en:
-
-    Texto
-    ...
-    Texto
-
-    Nunca usamos innerHTML como contenido del textarea.
-*/
-function importDiary(li) {
-
-    const directChildren =
-        Array.from(li.children);
-
-
-    const hasDiaryStructure =
-        directChildren.some(function(element) {
+        directChildren.forEach(function(element) {
 
             const tag =
                 element.tagName.toLowerCase();
-
-            return (
-                tag === "p" ||
-                tag === "hr"
-            );
-        });
-
-
-    if (!hasDiaryStructure) {
-        return null;
-    }
-
-
-    const parts = [];
-
-
-    directChildren.forEach(
-        function(element) {
-
-            const tag =
-                element.tagName.toLowerCase();
-
-
-            if (tag === "p") {
-
-                const clone =
-                    element.cloneNode(true);
-
-
-                clone
-                    .querySelectorAll("br")
-                    .forEach(function(br) {
-
-                        br.replaceWith(
-                            document.createTextNode(
-                                "\n"
-                            )
-                        );
-                    });
-
-
-                const text =
-                    clone.textContent.trim();
-
-
-                /*
-                    Si un HTML anterior tenía accidentalmente:
-
-                        <p>…</p>
-
-                    también lo reparamos al importar.
-                */
-
-                if (isDiarySeparator(text)) {
-                    parts.push("...");
-                    return;
-                }
-
-
-                if (text) {
-                    parts.push(text);
-                }
-            }
 
 
             if (tag === "hr") {
+
                 parts.push("...");
+
+                return;
             }
+
+
+            if (tag !== "p") {
+                return;
+            }
+
+
+            const clone =
+                element.cloneNode(true);
+
+
+            clone
+                .querySelectorAll("br")
+                .forEach(function(br) {
+
+                    br.replaceWith(
+                        document.createTextNode("\n")
+                    );
+
+                });
+
+
+            const text =
+                clone.textContent.trim();
+
+
+            if (!text) {
+                return;
+            }
+
+
+            /*
+             * Reparar HTML antiguo:
+             *
+             * <p>…</p>
+             *
+             * se convierte internamente en ...
+             */
+
+            if (isDiarySeparator(text)) {
+
+                parts.push("...");
+
+            } else {
+
+                parts.push(text);
+
+            }
+
+        });
+
+
+        if (!parts.length) {
+            return null;
+        }
+
+
+        return {
+            type: "diary",
+            text: parts.join("\n")
+        };
+    }
+
+
+    /*
+     * ============================================================
+     * FORMULARIO
+     * ============================================================
+     */
+
+    function updateTypeFields() {
+
+        const selectedType =
+            $("elementType").value;
+
+
+        const allFieldTypes = [
+            "polaroid",
+            "sticky",
+            "sticky-fecha",
+            "sticky-png",
+            "ticket",
+            "png-frame",
+            "diary",
+            "film-strip"
+        ];
+
+
+        allFieldTypes.forEach(function(type) {
+
+            const group =
+                $("fields-" + type);
+
+
+            if (!group) {
+                return;
+            }
+
+
+            group.classList.toggle(
+                "hidden",
+                type !== selectedType
+            );
+
+        });
+    }
+
+
+    function getFormData() {
+
+        const type =
+            $("elementType").value;
+
+
+        if (!type) {
+            return null;
+        }
+
+
+        if (type === "polaroid") {
+
+            return {
+                type: "polaroid",
+                image:
+                    $("polaroidImage").value.trim(),
+                alt:
+                    $("polaroidAlt").value.trim(),
+                text:
+                    $("polaroidText").value
+            };
+        }
+
+
+        if (type === "sticky") {
+
+            return {
+                type: "sticky",
+                text:
+                    $("stickyText").value
+            };
+        }
+
+
+        if (type === "sticky-fecha") {
+
+            return {
+                type: "sticky-fecha",
+                text:
+                    $("stickyFechaText").value,
+                date:
+                    $("stickyFechaDate").value
+            };
+        }
+
+
+        if (type === "sticky-png") {
+
+            return {
+                type: "sticky-png",
+                image:
+                    $("stickyPngImage").value.trim(),
+                alt:
+                    $("stickyPngAlt").value
+            };
+        }
+
+
+        if (type === "ticket") {
+
+            return {
+                type: "ticket",
+                image:
+                    $("ticketImage").value.trim(),
+                alt:
+                    $("ticketAlt").value
+            };
+        }
+
+
+        if (type === "png-frame") {
+
+            return {
+                type: "png-frame",
+                image:
+                    $("pngFrameImage").value.trim(),
+                alt:
+                    $("pngFrameAlt").value,
+                scale:
+                    $("pngFrameScale").value || "1.4"
+            };
+        }
+
+
+        if (type === "diary") {
+
+            return {
+                type: "diary",
+                text:
+                    $("diaryText").value
+            };
+        }
+
+
+        if (type === "film-strip") {
+
+            return {
+                type: "film-strip",
+
+                name:
+                    $("filmName").value,
+
+                images: [
+
+                    {
+                        image:
+                            $("filmImage1").value.trim(),
+
+                        alt:
+                            $("filmAlt1").value
+                    },
+
+                    {
+                        image:
+                            $("filmImage2").value.trim(),
+
+                        alt:
+                            $("filmAlt2").value
+                    },
+
+                    {
+                        image:
+                            $("filmImage3").value.trim(),
+
+                        alt:
+                            $("filmAlt3").value
+                    }
+
+                ]
+            };
+        }
+
+
+        return null;
+    }
+
+
+    function clearForm() {
+
+        $("elementType").value = "";
+
+        $("polaroidImage").value = "";
+        $("polaroidAlt").value = "";
+        $("polaroidText").value = "";
+
+        $("stickyText").value = "";
+
+        $("stickyFechaText").value = "";
+        $("stickyFechaDate").value = "";
+
+        $("stickyPngImage").value = "";
+        $("stickyPngAlt").value = "";
+
+        $("ticketImage").value = "";
+        $("ticketAlt").value = "";
+
+        $("pngFrameImage").value = "";
+        $("pngFrameAlt").value = "";
+        $("pngFrameScale").value = "1.4";
+
+        $("diaryText").value = "";
+
+        $("filmName").value = "";
+        $("filmImage1").value = "";
+        $("filmAlt1").value = "";
+        $("filmImage2").value = "";
+        $("filmAlt2").value = "";
+        $("filmImage3").value = "";
+        $("filmAlt3").value = "";
+
+        editingId = null;
+
+        $("addButton").textContent =
+            "Añadir elemento";
+
+        $("cancelEditButton")
+            .classList.add("hidden");
+
+        updateTypeFields();
+    }
+
+
+    function loadItemIntoForm(item) {
+
+        clearForm();
+
+
+        if (item.type === "blank") {
+
+            $("elementType").value = "";
+
+            updateTypeFields();
+
+            $("addButton").textContent =
+                "Guardar cambios";
+
+            $("cancelEditButton")
+                .classList.remove("hidden");
+
+            setStatus(
+                "formStatus",
+                "Elemento vacío. Elige ahora el tipo de elemento."
+            );
+
+            return;
+        }
+
+
+        $("elementType").value =
+            item.type;
+
+
+        if (item.type === "polaroid") {
+
+            $("polaroidImage").value =
+                item.image || "";
+
+            $("polaroidAlt").value =
+                item.alt || "";
+
+            $("polaroidText").value =
+                item.text || "";
+        }
+
+
+        if (item.type === "sticky") {
+
+            $("stickyText").value =
+                item.text || "";
+        }
+
+
+        if (item.type === "sticky-fecha") {
+
+            $("stickyFechaText").value =
+                item.text || "";
+
+            $("stickyFechaDate").value =
+                item.date || "";
+        }
+
+
+        if (item.type === "sticky-png") {
+
+            $("stickyPngImage").value =
+                item.image || "";
+
+            $("stickyPngAlt").value =
+                item.alt || "";
+        }
+
+
+        if (item.type === "ticket") {
+
+            $("ticketImage").value =
+                item.image || "";
+
+            $("ticketAlt").value =
+                item.alt || "";
+        }
+
+
+        if (item.type === "png-frame") {
+
+            $("pngFrameImage").value =
+                item.image || "";
+
+            $("pngFrameAlt").value =
+                item.alt || "";
+
+            $("pngFrameScale").value =
+                item.scale || "1.4";
+        }
+
+
+        if (item.type === "diary") {
+
+            $("diaryText").value =
+                item.text || "";
+        }
+
+
+        if (item.type === "film-strip") {
+
+            $("filmName").value =
+                item.name || "";
+
+
+            const images =
+                item.images || [];
+
+
+            $("filmImage1").value =
+                images[0]?.image || "";
+
+            $("filmAlt1").value =
+                images[0]?.alt || "";
+
+
+            $("filmImage2").value =
+                images[1]?.image || "";
+
+            $("filmAlt2").value =
+                images[1]?.alt || "";
+
+
+            $("filmImage3").value =
+                images[2]?.image || "";
+
+            $("filmAlt3").value =
+                images[2]?.alt || "";
+        }
+
+
+        updateTypeFields();
+
+
+        $("addButton").textContent =
+            "Guardar cambios";
+
+        $("cancelEditButton")
+            .classList.remove("hidden");
+
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }
+
+
+    /*
+     * ============================================================
+     * DESCRIPCIONES
+     * ============================================================
+     */
+
+    function getItemDescription(item) {
+
+        if (item.type === "blank") {
+            return "Elemento vacío — pulsa Editar para elegir el tipo";
+        }
+
+
+        if (item.type === "sticky-png") {
+
+            return (
+                item.alt ||
+                "(sin ALT)"
+            );
+        }
+
+
+        if (item.type === "polaroid") {
+
+            return (
+                item.text ||
+                "(sin texto)"
+            );
+        }
+
+
+        if (item.type === "sticky") {
+
+            return (
+                item.text ||
+                "(sin texto)"
+            );
+        }
+
+
+        if (item.type === "sticky-fecha") {
+
+            return (
+                item.date ||
+                "(sin fecha)"
+            );
+        }
+
+
+        if (item.type === "ticket") {
+
+            return (
+                item.alt ||
+                "(sin ALT)"
+            );
+        }
+
+
+        if (item.type === "png-frame") {
+
+            return (
+                item.alt ||
+                "(sin ALT)"
+            );
+        }
+
+
+        if (item.type === "diary") {
+
+            const firstText =
+                normalizeLineEndings(
+                    item.text || ""
+                )
+                .split("\n")
+                .map(normalizeDiaryLine)
+                .find(function(line) {
+
+                    return (
+                        line &&
+                        !isDiarySeparator(line)
+                    );
+
+                });
+
+
+            return (
+                firstText ||
+                "(vacío)"
+            );
+        }
+
+
+        if (item.type === "film-strip") {
+
+            return (
+                item.name ||
+                "Sin nombre"
+            );
+        }
+
+
+        return "";
+    }
+
+
+    function getItemTitle(item) {
+
+        if (item.type === "blank") {
+            return "Nuevo elemento (vacío)";
+        }
+
+
+        const names = {
+
+            "polaroid":
+                "Polaroid",
+
+            "sticky":
+                "Sticky Note",
+
+            "sticky-fecha":
+                "Sticky Note + Fecha",
+
+            "sticky-png":
+                "Sticky PNG",
+
+            "ticket":
+                "Ticket",
+
+            "png-frame":
+                "PNG Frame",
+
+            "diary":
+                "Diary Notes",
+
+            "film-strip":
+                "Film Strip"
+        };
+
+
+        return (
+            names[item.type] ||
+            item.type
+        );
+    }
+
+
+    /*
+     * ============================================================
+     * HTML DE LOS ELEMENTOS
+     * ============================================================
+     */
+
+    function elementToHtml(item) {
+
+        /*
+         * Un Blank no genera HTML.
+         */
+
+        if (item.type === "blank") {
+            return "";
+        }
+
+
+        if (item.type === "polaroid") {
+
+            const text =
+                capitalizeWords(
+                    item.text || ""
+                );
+
+
+            return (
+                "<li>\n" +
+                "    <p><img src=\"" +
+                escapeHtmlAttribute(
+                    item.image
+                ) +
+                "\" alt=\"" +
+                escapeHtmlAttribute(
+                    item.alt
+                ) +
+                "\"></p>\n" +
+                "    <ul><li>" +
+                escapeHtmlText(
+                    text
+                ) +
+                "</li></ul>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "sticky") {
+
+            const text =
+                capitalizeWords(
+                    item.text || ""
+                );
+
+
+            return (
+                "<li>\n" +
+                "    <p>" +
+                escapeHtmlText(
+                    text
+                ) +
+                "</p>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "sticky-fecha") {
+
+            const text =
+                capitalizeWords(
+                    item.text || ""
+                );
+
+
+            return (
+                "<li>\n" +
+                "    <p>" +
+                escapeHtmlText(
+                    text
+                ) +
+                "</p>\n" +
+                "    <ul><li>" +
+                escapeHtmlText(
+                    item.date || ""
+                ) +
+                "</li></ul>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "sticky-png") {
+
+            return (
+                "<li>\n" +
+                "    <img src=\"" +
+                escapeHtmlAttribute(
+                    item.image
+                ) +
+                "\" class=\"sticky-drawing\" alt=\"" +
+                escapeHtmlAttribute(
+                    item.alt
+                ) +
+                "\">\n" +
+                "    <p></p>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "ticket") {
+
+            return (
+                "<li class=\"ticket-frame\">\n" +
+                "    <img src=\"" +
+                escapeHtmlAttribute(
+                    item.image
+                ) +
+                "\" alt=\"" +
+                escapeHtmlAttribute(
+                    item.alt
+                ) +
+                "\">\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "png-frame") {
+
+            return (
+                "<li class=\"png-frame\" style=\"--png-scale: " +
+                escapeHtmlAttribute(
+                    item.scale || "1.4"
+                ) +
+                ";\">\n" +
+                "    <img src=\"" +
+                escapeHtmlAttribute(
+                    item.image
+                ) +
+                "\" alt=\"" +
+                escapeHtmlAttribute(
+                    item.alt
+                ) +
+                "\">\n" +
+                "</li>"
+            );
+        }
+
+
+        /*
+         * ========================================================
+         * DIARY
+         * ========================================================
+         *
+         * Texto normal:
+         *
+         * <p>Texto</p>
+         *
+         * Separador:
+         *
+         * <hr>
+         *
+         * El <hr> NUNCA está dentro de <p>.
+         */
+
+        if (item.type === "diary") {
+
+            const diaryContent =
+                formatDiaryToHtml(
+                    item.text || ""
+                );
+
+
+            return (
+                "<li>\n" +
+                "    <img src=\"data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=\" alt=\"Diario\"" +
+                (
+                    diaryContent
+                        ? "\n" +
+                          diaryContent
+                            .split("\n")
+                            .map(function(line) {
+                                return "    " + line;
+                            })
+                            .join("\n")
+                        : ""
+                ) +
+                "\n</li>"
+            );
+        }
+
+
+        if (item.type === "film-strip") {
+
+            const images =
+                item.images || [];
+
+
+            const frames =
+                images
+                    .filter(function(image) {
+
+                        return image.image;
+
+                    })
+                    .map(function(image) {
+
+                        return (
+                            "    <div class=\"film-frame\">\n" +
+                            "        <img src=\"" +
+                            escapeHtmlAttribute(
+                                image.image
+                            ) +
+                            "\" alt=\"" +
+                            escapeHtmlAttribute(
+                                image.alt
+                            ) +
+                            "\">\n" +
+                            "    </div>"
+                        );
+
+                    })
+                    .join("\n");
+
+
+            return (
+                "<li class=\"film-strip\">\n" +
+                frames +
+                "\n</li>"
+            );
+        }
+
+
+        return "";
+    }
+
+
+    function generateOutput() {
+
+        const htmlElements =
+            items
+                .filter(function(item) {
+                    return item.type !== "blank";
+                })
+                .map(function(item) {
+                    return elementToHtml(item);
+                })
+                .filter(Boolean)
+                .join("\n");
+
+
+        const html =
+            "<section class=\"tiny-photos\">\n" +
+            "<ul>\n" +
+            htmlElements +
+            "\n</ul>\n" +
+            "</section>";
+
+
+        $("output").value =
+            html;
+    }
+
+
+    /*
+     * ============================================================
+     * STORAGE
+     * ============================================================
+     */
+
+    function saveItems() {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(items)
+        );
+    }
+
+
+    function loadItems() {
+
+        try {
+
+            const stored =
+                localStorage.getItem(
+                    STORAGE_KEY
+                );
+
+
+            if (!stored) {
+
+                items = [];
+
+                return;
+            }
+
+
+            const parsed =
+                JSON.parse(stored);
+
+
+            if (!Array.isArray(parsed)) {
+
+                items = [];
+
+                return;
+            }
+
+
+            items =
+                parsed.map(function(item) {
+
+                    const normalized =
+                        item &&
+                        typeof item === "object"
+                            ? item
+                            : {
+                                type: "blank"
+                            };
+
+
+                    if (!normalized.id) {
+                        normalized.id = makeId();
+                    }
+
+
+                    /*
+                     * Compatibilidad con datos antiguos
+                     * sin id.
+                     */
+
+                    if (
+                        normalized.type ===
+                        "film-strip" &&
+                        !Array.isArray(
+                            normalized.images
+                        )
+                    ) {
+                        normalized.images = [];
+                    }
+
+
+                    return normalized;
+                });
+
+
+            saveItems();
+
+        } catch (error) {
+
+            items = [];
+
+        }
+    }
+
+
+    /*
+     * ============================================================
+     * RENDER DE ELEMENTOS
+     * ============================================================
+     */
+
+    function renderItems() {
+
+        const list =
+            $("itemsList");
+
+
+        list.innerHTML = "";
+
+
+        if (!items.length) {
+
+            const empty =
+                document.createElement(
+                    "div"
+                );
+
+
+            empty.className =
+                "empty";
+
+
+            empty.textContent =
+                "No hay elementos añadidos.";
+
+
+            list.appendChild(empty);
+
+            return;
+        }
+
+
+        items.forEach(function(item, index) {
+
+            /*
+             * Wrapper.
+             *
+             * Dentro:
+             *
+             *   .item
+             *   botón +
+             */
+
+            const entry =
+                document.createElement(
+                    "div"
+                );
+
+
+            entry.className =
+                "element-entry";
+
+
+            entry._item =
+                item;
+
+
+            /*
+             * ELEMENTO
+             */
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+
+            row.className =
+                "item";
+
+
+            if (item.type === "blank") {
+
+                row.classList.add(
+                    "blank-item"
+                );
+            }
+
+
+            row._item =
+                item;
+
+
+            const info =
+                document.createElement(
+                    "div"
+                );
+
+
+            info.className =
+                "item-info";
+
+
+            const title =
+                document.createElement(
+                    "div"
+                );
+
+
+            title.className =
+                "item-title";
+
+
+            title.textContent =
+                (index + 1) +
+                ". " +
+                getItemTitle(item);
+
+
+            const description =
+                document.createElement(
+                    "div"
+                );
+
+
+            description.className =
+                "item-description";
+
+
+            description.textContent =
+                getItemDescription(item);
+
+
+            info.appendChild(title);
+            info.appendChild(description);
+
+
+            /*
+             * BOTONES
+             */
+
+            const actions =
+                document.createElement(
+                    "div"
+                );
+
+
+            actions.className =
+                "item-actions";
+
+
+            const up =
+                document.createElement(
+                    "button"
+                );
+
+
+            up.type = "button";
+            up.textContent = "↑";
+            up.title = "Subir";
+
+
+            const down =
+                document.createElement(
+                    "button"
+                );
+
+
+            down.type = "button";
+            down.textContent = "↓";
+            down.title = "Bajar";
+
+
+            const edit =
+                document.createElement(
+                    "button"
+                );
+
+
+            edit.type = "button";
+            edit.textContent = "Editar";
+
+
+            const duplicate =
+                document.createElement(
+                    "button"
+                );
+
+
+            duplicate.type = "button";
+            duplicate.textContent = "Duplicar";
+
+
+            const remove =
+                document.createElement(
+                    "button"
+                );
+
+
+            remove.type = "button";
+            remove.textContent = "Eliminar";
+
+
+            /*
+             * SUBIR
+             */
+
+            up.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (currentIndex > 0) {
+
+                        const temp =
+                            items[
+                                currentIndex - 1
+                            ];
+
+
+                        items[
+                            currentIndex - 1
+                        ] =
+                            items[
+                                currentIndex
+                            ];
+
+
+                        items[
+                            currentIndex
+                        ] =
+                            temp;
+
+
+                        saveItems();
+                        renderItems();
+                        generateOutput();
+                    }
+
+                }
+            );
+
+
+            /*
+             * BAJAR
+             */
+
+            down.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (
+                        currentIndex >= 0 &&
+                        currentIndex <
+                            items.length - 1
+                    ) {
+
+                        const temp =
+                            items[
+                                currentIndex + 1
+                            ];
+
+
+                        items[
+                            currentIndex + 1
+                        ] =
+                            items[
+                                currentIndex
+                            ];
+
+
+                        items[
+                            currentIndex
+                        ] =
+                            temp;
+
+
+                        saveItems();
+                        renderItems();
+                        generateOutput();
+                    }
+
+                }
+            );
+
+
+            /*
+             * EDITAR
+             */
+
+            edit.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (currentIndex < 0) {
+                        return;
+                    }
+
+
+                    editingId =
+                        currentItem.id;
+
+
+                    loadItemIntoForm(
+                        currentItem
+                    );
+
+
+                    $("addButton").textContent =
+                        "Guardar cambios";
+
+
+                    $("cancelEditButton")
+                        .classList.remove(
+                            "hidden"
+                        );
+
+
+                    if (
+                        currentItem.type !==
+                        "blank"
+                    ) {
+
+                        setStatus(
+                            "formStatus",
+                            "Editando elemento."
+                        );
+                    }
+
+                }
+            );
+
+
+            /*
+             * DUPLICAR
+             */
+
+            duplicate.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (currentIndex < 0) {
+                        return;
+                    }
+
+
+                    const copy =
+                        JSON.parse(
+                            JSON.stringify(
+                                currentItem
+                            )
+                        );
+
+
+                    copy.id =
+                        makeId();
+
+
+                    items.splice(
+                        currentIndex + 1,
+                        0,
+                        copy
+                    );
+
+
+                    saveItems();
+                    renderItems();
+                    generateOutput();
+
+                }
+            );
+
+
+            /*
+             * ELIMINAR
+             */
+
+            remove.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (currentIndex < 0) {
+                        return;
+                    }
+
+
+                    items.splice(
+                        currentIndex,
+                        1
+                    );
+
+
+                    if (
+                        editingId ===
+                        currentItem.id
+                    ) {
+
+                        clearForm();
+                    }
+
+
+                    saveItems();
+                    renderItems();
+                    generateOutput();
+
+                }
+            );
+
+
+            actions.appendChild(up);
+            actions.appendChild(down);
+            actions.appendChild(edit);
+            actions.appendChild(duplicate);
+            actions.appendChild(remove);
+
+
+            row.appendChild(info);
+            row.appendChild(actions);
+
+
+            /*
+             * ====================================================
+             * BOTÓN +
+             *
+             * ESTÁ FUERA DEL .item
+             * ====================================================
+             */
+
+            const insertAfter =
+                document.createElement(
+                    "button"
+                );
+
+
+            insertAfter.type =
+                "button";
+
+
+            insertAfter.className =
+                "insert-after";
+
+
+            insertAfter.textContent =
+                "+";
+
+
+            insertAfter.title =
+                "Crear un elemento después de este";
+
+
+            insertAfter.addEventListener(
+                "pointerdown",
+                function(event) {
+
+                    /*
+                     * El + nunca inicia drag.
+                     */
+
+                    event.stopPropagation();
+
+                }
+            );
+
+
+            insertAfter.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (currentIndex < 0) {
+                        return;
+                    }
+
+
+                    const blank = {
+
+                        id:
+                            makeId(),
+
+                        type:
+                            "blank"
+
+                    };
+
+
+                    items.splice(
+                        currentIndex + 1,
+                        0,
+                        blank
+                    );
+
+
+                    saveItems();
+                    renderItems();
+                    generateOutput();
+
+
+                    setStatus(
+                        "formStatus",
+                        "Elemento vacío creado. Pulsa Editar para elegir el tipo."
+                    );
+
+                }
+            );
+
+
+            entry.appendChild(row);
+            entry.appendChild(insertAfter);
+
+
+            setupDrag(entry);
+
+
+            list.appendChild(entry);
+
+        });
+    }
+
+
+    function setStatus(
+        id,
+        message
+    ) {
+
+        $(id).textContent =
+            message || "";
+    }
+
+
+    /*
+     * ============================================================
+     * DRAG & DROP
+     * ============================================================
+     */
+
+    function setupDrag(entry) {
+
+        entry.addEventListener(
+            "pointerdown",
+            function(event) {
+
+                if (event.button !== 0) {
+                    return;
+                }
+
+
+                /*
+                 * El botón + y botones internos no arrastran.
+                 */
+
+                if (
+                    event.target.closest(
+                        "button"
+                    ) ||
+                    event.target.closest(
+                        "input"
+                    ) ||
+                    event.target.closest(
+                        "textarea"
+                    ) ||
+                    event.target.closest(
+                        "select"
+                    )
+                ) {
+
+                    return;
+                }
+
+
+                const rect =
+                    entry.getBoundingClientRect();
+
+
+                dragState = {
+
+                    entry:
+                        entry,
+
+                    pointerId:
+                        event.pointerId,
+
+                    startX:
+                        event.clientX,
+
+                    startY:
+                        event.clientY,
+
+                    offsetX:
+                        event.clientX -
+                        rect.left,
+
+                    offsetY:
+                        event.clientY -
+                        rect.top,
+
+                    originalNextSibling:
+                        entry.nextElementSibling,
+
+                    placeholder:
+                        null,
+
+                    dragging:
+                        false
+
+                };
+
+
+                try {
+
+                    entry.setPointerCapture(
+                        event.pointerId
+                    );
+
+                } catch (error) {}
+
+            }
+        );
+
+
+        entry.addEventListener(
+            "pointermove",
+            function(event) {
+
+                if (!dragState) {
+                    return;
+                }
+
+
+                if (
+                    event.pointerId !==
+                    dragState.pointerId
+                ) {
+
+                    return;
+                }
+
+
+                const dx =
+                    event.clientX -
+                    dragState.startX;
+
+
+                const dy =
+                    event.clientY -
+                    dragState.startY;
+
+
+                if (!dragState.dragging) {
+
+                    if (
+                        Math.sqrt(
+                            dx * dx +
+                            dy * dy
+                        ) < 5
+                    ) {
+
+                        return;
+                    }
+
+
+                    startDragging(
+                        dragState,
+                        event
+                    );
+                }
+
+
+                moveDragging(
+                    dragState,
+                    event
+                );
+
+            }
+        );
+
+
+        entry.addEventListener(
+            "pointerup",
+            function(event) {
+
+                if (!dragState) {
+                    return;
+                }
+
+
+                if (
+                    event.pointerId !==
+                    dragState.pointerId
+                ) {
+
+                    return;
+                }
+
+
+                finishDragging(
+                    dragState
+                );
+
+
+                dragState = null;
+
+            }
+        );
+
+
+        entry.addEventListener(
+            "pointercancel",
+            function() {
+
+                if (!dragState) {
+                    return;
+                }
+
+
+                cancelDragging(
+                    dragState
+                );
+
+
+                dragState = null;
+
+            }
+        );
+    }
+
+
+    function startDragging(
+        state,
+        event
+    ) {
+
+        state.dragging =
+            true;
+
+
+        const entry =
+            state.entry;
+
+
+        const rect =
+            entry.getBoundingClientRect();
+
+
+        const placeholder =
+            document.createElement(
+                "div"
+            );
+
+
+        placeholder.className =
+            "drag-placeholder";
+
+
+        placeholder.style.height =
+            rect.height + "px";
+
+
+        placeholder.style.width =
+            rect.width + "px";
+
+
+        state.placeholder =
+            placeholder;
+
+
+        /*
+         * Primero colocamos el hueco donde estaba
+         * el elemento.
+         */
+
+        entry.parentNode.insertBefore(
+            placeholder,
+            entry.nextSibling
+        );
+
+
+        entry.classList.add(
+            "dragging"
+        );
+
+
+        document.body.classList.add(
+            "drag-active"
+        );
+
+
+        /*
+         * Lo convertimos en elemento flotante.
+         */
+
+        entry.style.position =
+            "fixed";
+
+
+        entry.style.left =
+            (
+                event.clientX -
+                state.offsetX
+            ) + "px";
+
+
+        entry.style.top =
+            (
+                event.clientY -
+                state.offsetY
+            ) + "px";
+
+
+        entry.style.width =
+            rect.width + "px";
+
+
+        entry.style.margin =
+            "0";
+
+
+        entry.style.pointerEvents =
+            "none";
+
+
+        updatePlaceholder(
+            event.clientY,
+            state
+        );
+    }
+
+
+    function moveDragging(
+        state,
+        event
+    ) {
+
+        const entry =
+            state.entry;
+
+
+        entry.style.left =
+            (
+                event.clientX -
+                state.offsetX
+            ) + "px";
+
+
+        entry.style.top =
+            (
+                event.clientY -
+                state.offsetY
+            ) + "px";
+
+
+        updatePlaceholder(
+            event.clientY,
+            state
+        );
+    }
+
+
+    function updatePlaceholder(
+        clientY,
+        state
+    ) {
+
+        const list =
+            $("itemsList");
+
+
+        const placeholder =
+            state.placeholder;
+
+
+        if (!placeholder) {
+            return;
+        }
+
+
+        const entries =
+            Array.from(
+                list.children
+            ).filter(function(element) {
+
+                return (
+                    element !==
+                    placeholder &&
+                    element.classList.contains(
+                        "element-entry"
+                    )
+                );
+
+            });
+
+
+        let inserted =
+            false;
+
+
+        for (
+            const entry of entries
+        ) {
+
+            const rect =
+                entry.getBoundingClientRect();
+
+
+            const midpoint =
+                rect.top +
+                rect.height / 2;
+
+
+            if (
+                clientY <
+                midpoint
+            ) {
+
+                if (
+                    placeholder !==
+                    entry.previousElementSibling
+                ) {
+
+                    const firstRects =
+                        entries.map(
+                            function(element) {
+
+                                return [
+                                    element,
+                                    element
+                                        .getBoundingClientRect()
+                                        .top
+                                ];
+
+                            }
+                        );
+
+
+                    entry.parentNode.insertBefore(
+                        placeholder,
+                        entry
+                    );
+
+
+                    animateRows(
+                        firstRects
+                    );
+                }
+
+
+                inserted =
+                    true;
+
+
+                break;
+            }
+        }
+
+
+        if (!inserted) {
+
+            const lastEntry =
+                entries[
+                    entries.length - 1
+                ];
+
+
+            if (lastEntry) {
+
+                if (
+                    lastEntry.nextElementSibling !==
+                    placeholder
+                ) {
+
+                    const firstRects =
+                        entries.map(
+                            function(element) {
+
+                                return [
+                                    element,
+                                    element
+                                        .getBoundingClientRect()
+                                        .top
+                                ];
+
+                            }
+                        );
+
+
+                    lastEntry.parentNode.insertBefore(
+                        placeholder,
+                        lastEntry.nextSibling
+                    );
+
+
+                    animateRows(
+                        firstRects
+                    );
+                }
+
+            } else {
+
+                list.appendChild(
+                    placeholder
+                );
+            }
+        }
+    }
+
+
+    function animateRows(
+        firstRects
+    ) {
+
+        firstRects.forEach(
+            function(pair) {
+
+                const entry =
+                    pair[0];
+
+
+                const oldTop =
+                    pair[1];
+
+
+                const newTop =
+                    entry
+                        .getBoundingClientRect()
+                        .top;
+
+
+                const delta =
+                    oldTop -
+                    newTop;
+
+
+                if (!delta) {
+                    return;
+                }
+
+
+                entry.animate(
+                    [
+                        {
+                            transform:
+                                "translateY(" +
+                                delta +
+                                "px)"
+                        },
+
+                        {
+                            transform:
+                                "translateY(0)"
+                        }
+                    ],
+                    {
+                        duration: 160,
+                        easing:
+                            "cubic-bezier(.2,.8,.2,1)"
+                    }
+                );
+
+            }
+        );
+    }
+
+
+    function finishDragging(
+        state
+    ) {
+
+        if (!state.dragging) {
+
+            cancelDragging(
+                state
+            );
+
+            return;
+        }
+
+
+        const entry =
+            state.entry;
+
+
+        const placeholder =
+            state.placeholder;
+
+
+        if (!placeholder) {
+
+            cancelDragging(
+                state
+            );
+
+            return;
+        }
+
+
+        /*
+         * El hueco visible es la autoridad.
+         */
+
+        const targetRect =
+            placeholder.getBoundingClientRect();
+
+
+        const currentRect =
+            entry.getBoundingClientRect();
+
+
+        /*
+         * Ponemos físicamente el entry donde estaba
+         * el placeholder.
+         */
+
+        placeholder.replaceWith(
+            entry
+        );
+
+
+        const deltaX =
+            targetRect.left -
+            currentRect.left;
+
+
+        const deltaY =
+            targetRect.top -
+            currentRect.top;
+
+
+        entry.animate(
+            [
+                {
+                    transform:
+                        "translate(" +
+                        deltaX +
+                        "px, " +
+                        deltaY +
+                        "px) scale(1.035)"
+                },
+
+                {
+                    transform:
+                        "scale(1.035)"
+                }
+            ],
+            {
+                duration: 220,
+                easing:
+                    "cubic-bezier(.2,.8,.2,1)"
+            }
+        );
+
+
+        /*
+         * El DOM manda.
+         */
+
+        const domEntries =
+            Array.from(
+                $("itemsList").children
+            ).filter(function(element) {
+
+                return element.classList.contains(
+                    "element-entry"
+                );
+
+            });
+
+
+        items =
+            domEntries.map(
+                function(domEntry) {
+
+                    return domEntry._item;
+
+                }
+            );
+
+
+        saveItems();
+        generateOutput();
+
+
+        setTimeout(
+            function() {
+
+                entry.classList.remove(
+                    "dragging"
+                );
+
+
+                entry.style.position =
+                    "";
+
+                entry.style.left =
+                    "";
+
+                entry.style.top =
+                    "";
+
+                entry.style.width =
+                    "";
+
+                entry.style.margin =
+                    "";
+
+                entry.style.pointerEvents =
+                    "";
+
+
+                document.body.classList.remove(
+                    "drag-active"
+                );
+
+
+                renderItems();
+                saveItems();
+                generateOutput();
+
+            },
+            230
+        );
+    }
+
+
+    function cancelDragging(
+        state
+    ) {
+
+        const entry =
+            state.entry;
+
+
+        const placeholder =
+            state.placeholder;
+
+
+        if (
+            placeholder &&
+            placeholder.parentNode
+        ) {
+
+            placeholder.remove();
+        }
+
+
+        if (
+            state.originalNextSibling &&
+            state.originalNextSibling.parentNode
+        ) {
+
+            state.originalNextSibling.parentNode.insertBefore(
+                entry,
+                state.originalNextSibling
+            );
+
+        } else {
+
+            $("itemsList")
+                .appendChild(entry);
+        }
+
+
+        entry.classList.remove(
+            "dragging"
+        );
+
+
+        entry.style.position =
+            "";
+
+        entry.style.left =
+            "";
+
+        entry.style.top =
+            "";
+
+        entry.style.width =
+            "";
+
+        entry.style.margin =
+            "";
+
+        entry.style.pointerEvents =
+            "";
+
+
+        document.body.classList.remove(
+            "drag-active"
+        );
+    }
+
+
+    window.addEventListener(
+        "blur",
+        function() {
+
+            if (!dragState) {
+                return;
+            }
+
+
+            cancelDragging(
+                dragState
+            );
+
+
+            dragState =
+                null;
         }
     );
 
 
-    if (!parts.length) {
-        return null;
-    }
+    /*
+     * ============================================================
+     * IMPORTACIÓN
+     * ============================================================
+     */
 
+    function findTinyPhotosList(doc) {
 
-    return {
-        type: "diary",
-        text: parts.join("\n")
-    };
-}
-
-
-function importPolaroid(li) {
-
-    const directChildren =
-        Array.from(li.children);
-
-
-    const p =
-        directChildren.find(function(child) {
-            return (
-                child.tagName.toLowerCase() ===
-                "p"
+        const section =
+            doc.querySelector(
+                "section.tiny-photos"
             );
-        });
 
 
-    const ul =
-        directChildren.find(function(child) {
-            return (
-                child.tagName.toLowerCase() ===
+        if (section) {
+
+            const directUl =
+                Array.from(
+                    section.children
+                )
+                .find(function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "ul"
+                    );
+
+                });
+
+
+            if (directUl) {
+                return directUl;
+            }
+
+
+            const descendantUl =
+                section.querySelector(
+                    "ul"
+                );
+
+
+            if (descendantUl) {
+                return descendantUl;
+            }
+        }
+
+
+        const firstUl =
+            doc.querySelector(
                 "ul"
             );
-        });
 
 
-    if (!p || !ul) {
-        return null;
+        return firstUl || null;
     }
 
 
-    const img =
-        p.querySelector("img");
+    function importPolaroid(li) {
 
-    if (!img) {
-        return null;
-    }
-
-
-    const captionLi =
-        ul.querySelector("li");
-
-
-    return {
-        type: "polaroid",
-        image: img.getAttribute("src") || "",
-        alt: img.getAttribute("alt") || "",
-        caption: captionLi
-            ? captionLi.textContent.trim()
-            : ""
-    };
-}
-
-
-function importStickyFecha(li) {
-
-    const directChildren =
-        Array.from(li.children);
-
-
-    const p =
-        directChildren.find(function(child) {
-            return (
-                child.tagName.toLowerCase() ===
-                "p"
+        const directChildren =
+            Array.from(
+                li.children
             );
-        });
 
 
-    const ul =
-        directChildren.find(function(child) {
-            return (
-                child.tagName.toLowerCase() ===
-                "ul"
+        const p =
+            directChildren.find(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "p"
+                    );
+
+                }
             );
-        });
 
 
-    if (!p || !ul) {
-        return null;
+        const ul =
+            directChildren.find(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "ul"
+                    );
+
+                }
+            );
+
+
+        if (!p || !ul) {
+            return null;
+        }
+
+
+        const img =
+            p.querySelector(
+                "img"
+            );
+
+
+        if (!img) {
+            return null;
+        }
+
+
+        const hasImageInP =
+            img.parentElement === p;
+
+
+        if (!hasImageInP) {
+            return null;
+        }
+
+
+        const textLi =
+            ul.querySelector(
+                "li"
+            );
+
+
+        /*
+         * Solo se importa la PRIMERA línea
+         * de la Polaroid.
+         */
+
+        return {
+
+            type:
+                "polaroid",
+
+            image:
+                img.getAttribute(
+                    "src"
+                ) || "",
+
+            alt:
+                img.getAttribute(
+                    "alt"
+                ) || "",
+
+            text:
+                textLi
+                    ? textLi.textContent
+                    : ""
+        };
     }
 
 
-    /*
-        Si hay una imagen dentro del p, no es Sticky Fecha.
-    */
+    function importFilmStrip(li) {
 
-    if (p.querySelector("img")) {
-        return null;
-    }
-
-
-    const dateLi =
-        ul.querySelector("li");
+        if (
+            !li.classList.contains(
+                "film-strip"
+            )
+        ) {
+            return null;
+        }
 
 
-    return {
-        type: "sticky-fecha",
-        text: p.textContent.trim(),
-        date: dateLi
-            ? dateLi.textContent.trim()
-            : ""
-    };
-}
-
-
-function importSticky(li) {
-
-    const directChildren =
-        Array.from(li.children);
-
-
-    if (directChildren.length !== 1) {
-        return null;
-    }
-
-
-    const p =
-        directChildren[0];
-
-
-    if (
-        p.tagName.toLowerCase() !==
-        "p"
-    ) {
-        return null;
-    }
-
-
-    if (p.querySelector("img")) {
-        return null;
-    }
-
-
-    return {
-        type: "sticky",
-        text: p.textContent
-    };
-}
-
-
-function importLi(li) {
-
-    /*
-        FILM STRIP
-    */
-
-    if (
-        li.classList.contains(
-            "film-strip"
-        )
-    ) {
-
-        const frameElements =
+        const frames =
             Array.from(
                 li.querySelectorAll(
                     ":scope > .film-frame"
@@ -3264,616 +3743,845 @@ function importLi(li) {
             );
 
 
-        const images = [];
-        const alts = [];
+        const images =
+            frames.map(
+                function(frame) {
+
+                    const img =
+                        frame.querySelector(
+                            "img"
+                        );
 
 
-        frameElements.forEach(
-            function(frame) {
+                    return {
 
-                const img =
-                    frame.querySelector("img");
+                        image:
+                            img
+                                ? img.getAttribute(
+                                    "src"
+                                ) || ""
+                                : "",
 
-                if (!img) {
-                    return;
+                        alt:
+                            img
+                                ? img.getAttribute(
+                                    "alt"
+                                ) || ""
+                                : ""
+
+                    };
+
                 }
-
-                images.push(
-                    img.getAttribute("src") || ""
-                );
-
-                alts.push(
-                    img.getAttribute("alt") || ""
-                );
-            }
-        );
-
-
-        while (images.length < 3) {
-            images.push("");
-            alts.push("");
-        }
+            );
 
 
         return {
-            type: "film-strip",
-            name: "",
-            images: images.slice(0, 3),
-            alts: alts.slice(0, 3)
+
+            type:
+                "film-strip",
+
+            name:
+                "",
+
+            images:
+                images
+
         };
     }
 
 
-    /*
-        TICKET
-    */
+    function importTicket(li) {
 
-    if (
-        li.classList.contains(
-            "ticket-frame"
-        )
-    ) {
+        if (
+            !li.classList.contains(
+                "ticket-frame"
+            )
+        ) {
+            return null;
+        }
+
 
         const img =
-            li.querySelector(":scope > img");
+            li.querySelector(
+                ":scope > img"
+            );
 
-        if (img) {
 
-            return {
-                type: "ticket",
-                image:
-                    img.getAttribute("src") || "",
-                alt:
-                    img.getAttribute("alt") || ""
-            };
+        if (!img) {
+            return null;
         }
-    }
 
-
-    /*
-        PNG FRAME
-    */
-
-    if (
-        li.classList.contains(
-            "png-frame"
-        )
-    ) {
-
-        const img =
-            li.querySelector(":scope > img");
-
-        if (img) {
-
-            const style =
-                li.getAttribute("style") || "";
-
-            const scaleMatch =
-                style.match(
-                    /--png-scale\s*:\s*([^;]+)/i
-                );
-
-
-            return {
-                type: "png-frame",
-                image:
-                    img.getAttribute("src") || "",
-                alt:
-                    img.getAttribute("alt") || "",
-                scale:
-                    scaleMatch
-                        ? parseFloat(
-                            scaleMatch[1]
-                        )
-                        : 1.4
-            };
-        }
-    }
-
-
-    /*
-        STICKY PNG
-    */
-
-    const stickyDrawing =
-        li.querySelector(
-            ":scope > img.sticky-drawing"
-        );
-
-    if (stickyDrawing) {
 
         return {
-            type: "sticky-png",
+
+            type:
+                "ticket",
+
             image:
-                stickyDrawing.getAttribute(
+                img.getAttribute(
                     "src"
                 ) || "",
+
             alt:
-                stickyDrawing.getAttribute(
+                img.getAttribute(
                     "alt"
                 ) || ""
+
         };
     }
 
 
-    /*
-        POLAROID
+    function importPngFrame(li) {
 
-        Se comprueba antes de Sticky Fecha porque
-        ambos tienen p + ul.
-    */
-
-    const polaroid =
-        importPolaroid(li);
-
-    if (polaroid) {
-        return polaroid;
-    }
+        if (
+            !li.classList.contains(
+                "png-frame"
+            )
+        ) {
+            return null;
+        }
 
 
-    /*
-        DIARY
-
-        Si tiene <hr>, es inequívocamente Diary.
-    */
-
-    const directChildren =
-        Array.from(li.children);
-
-
-    const hasDirectHr =
-        directChildren.some(function(element) {
-            return (
-                element.tagName.toLowerCase() ===
-                "hr"
+        const img =
+            li.querySelector(
+                ":scope > img"
             );
-        });
 
 
-    if (hasDirectHr) {
-
-        const diary =
-            importDiary(li);
-
-        if (diary) {
-            return diary;
+        if (!img) {
+            return null;
         }
-    }
 
 
-    /*
-        STICKY FECHA
-    */
-
-    const stickyFecha =
-        importStickyFecha(li);
-
-    if (stickyFecha) {
-        return stickyFecha;
-    }
+        let scale =
+            "1.4";
 
 
-    /*
-        STICKY
-    */
-
-    const sticky =
-        importSticky(li);
-
-    if (sticky) {
-        return sticky;
-    }
+        const style =
+            li.getAttribute(
+                "style"
+            ) || "";
 
 
-    /*
-        Último intento:
-        Diary si contiene cualquier <hr>.
-    */
+        const match =
+            style.match(
+                /--png-scale\s*:\s*([^;]+)/
+            );
 
-    if (
-        li.querySelector("hr")
-    ) {
 
-        const diary =
-            importDiary(li);
+        if (match) {
 
-        if (diary) {
-            return diary;
+            scale =
+                match[1].trim();
         }
+
+
+        return {
+
+            type:
+                "png-frame",
+
+            image:
+                img.getAttribute(
+                    "src"
+                ) || "",
+
+            alt:
+                img.getAttribute(
+                    "alt"
+                ) || "",
+
+            scale:
+                scale
+
+        };
     }
 
 
-    return null;
-}
+    function importStickyPng(li) {
+
+        const img =
+            li.querySelector(
+                ":scope > img.sticky-drawing"
+            );
 
 
-function importHtml() {
+        if (!img) {
+            return null;
+        }
 
-    const raw =
-        $("importInput").value.trim();
 
+        return {
 
-    if (!raw) {
+            type:
+                "sticky-png",
 
-        setStatus(
-            "importStatus",
-            "No hay HTML para importar."
-        );
+            image:
+                img.getAttribute(
+                    "src"
+                ) || "",
 
-        return;
+            alt:
+                img.getAttribute(
+                    "alt"
+                ) || ""
+
+        };
     }
 
 
-    try {
+    function importStickyFecha(li) {
 
-        const parser =
-            new DOMParser();
+        const directChildren =
+            Array.from(
+                li.children
+            );
 
-        const doc =
-            parser.parseFromString(
-                raw,
-                "text/html"
+
+        const p =
+            directChildren.find(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "p"
+                    );
+
+                }
             );
 
 
         const ul =
-            findTinyPhotosList(doc);
+            directChildren.find(
+                function(element) {
 
-
-        if (!ul) {
-
-            setStatus(
-                "importStatus",
-                "No se encontró ningún <ul> válido."
-            );
-
-            return;
-        }
-
-
-        const directLis =
-            Array.from(ul.children)
-                .filter(function(child) {
                     return (
-                        child.tagName &&
-                        child.tagName.toLowerCase() ===
-                        "li"
+                        element.tagName
+                            .toLowerCase() ===
+                        "ul"
                     );
-                });
 
-
-        const imported = [];
-
-
-        directLis.forEach(function(li) {
-
-            const item =
-                importLi(li);
-
-            if (item) {
-                imported.push(item);
-            }
-        });
-
-
-        if (!imported.length) {
-
-            setStatus(
-                "importStatus",
-                "No se encontraron elementos compatibles."
+                }
             );
 
-            return;
+
+        if (!p || !ul) {
+            return null;
         }
 
 
-        items =
-            imported;
-
-        editingIndex = -1;
-
-        saveItems();
-        renderItems();
-        generateOutput();
-        clearForm();
+        if (p.querySelector("img")) {
+            return null;
+        }
 
 
-        setStatus(
-            "importStatus",
-            imported.length +
-            (
-                imported.length === 1
-                    ? " elemento importado."
-                    : " elementos importados."
-            )
-        );
+        const dateLi =
+            ul.querySelector(
+                "li"
+            );
 
-    } catch (error) {
 
-        console.error(
-            "Error importando HTML:",
-            error
-        );
+        return {
 
-        setStatus(
-            "importStatus",
-            "No se pudo importar el HTML."
-        );
+            type:
+                "sticky-fecha",
+
+            text:
+                p.textContent,
+
+            date:
+                dateLi
+                    ? dateLi.textContent
+                    : ""
+
+        };
     }
-}
 
 
-/* =========================================================
-   ESTADOS
-========================================================= */
+    function importSticky(li) {
 
-function setStatus(
-    elementId,
-    message
-) {
-
-    $(elementId).textContent =
-        message || "";
-}
+        const directChildren =
+            Array.from(
+                li.children
+            );
 
 
-/* =========================================================
-   COPIAR
-========================================================= */
+        const p =
+            directChildren.find(
+                function(element) {
 
-async function copyOutput() {
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "p"
+                    );
 
-    const value =
-        $("htmlOutput").value;
+                }
+            );
 
 
-    try {
+        if (!p) {
+            return null;
+        }
 
-        await navigator.clipboard.writeText(
-            value
-        );
 
-        setStatus(
-            "outputStatus",
-            "HTML copiado al portapapeles."
-        );
+        if (p.querySelector("img")) {
+            return null;
+        }
 
-    } catch (error) {
+
+        const hasUl =
+            directChildren.some(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "ul"
+                    );
+
+                }
+            );
+
+
+        if (hasUl) {
+            return null;
+        }
+
+
+        return {
+
+            type:
+                "sticky",
+
+            text:
+                p.textContent
+
+        };
+    }
+
+
+    function importLi(li) {
 
         /*
-            Fallback para navegadores que no permiten
-            navigator.clipboard.
-        */
+         * 1. Film Strip
+         */
 
-        $("htmlOutput").focus();
-        $("htmlOutput").select();
+        let result =
+            importFilmStrip(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 2. Ticket
+         */
+
+        result =
+            importTicket(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 3. PNG Frame
+         */
+
+        result =
+            importPngFrame(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 4. Sticky PNG
+         */
+
+        result =
+            importStickyPng(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 5. Polaroid
+         */
+
+        result =
+            importPolaroid(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 6. Diary
+         */
+
+        result =
+            importDiary(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 7. Sticky + fecha
+         */
+
+        result =
+            importStickyFecha(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 8. Sticky normal
+         */
+
+        result =
+            importSticky(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        return null;
+    }
+
+
+    function importHtml() {
+
+        const source =
+            $("importInput")
+                .value
+                .trim();
+
+
+        if (!source) {
+
+            setStatus(
+                "importStatus",
+                "Pega primero el HTML que quieres importar."
+            );
+
+            return;
+        }
+
 
         try {
 
-            document.execCommand(
-                "copy"
-            );
-
-            setStatus(
-                "outputStatus",
-                "HTML copiado al portapapeles."
-            );
-
-        } catch (fallbackError) {
-
-            setStatus(
-                "outputStatus",
-                "No se pudo copiar automáticamente."
-            );
-        }
-    }
-}
+            const parser =
+                new DOMParser();
 
 
-/* =========================================================
-   DESCARGAR
-========================================================= */
-
-function downloadOutput() {
-
-    const html =
-        $("htmlOutput").value;
+            const doc =
+                parser.parseFromString(
+                    source,
+                    "text/html"
+                );
 
 
-    const blob =
-        new Blob(
-            [html],
-            {
-                type: "text/html;charset=utf-8"
+            const ul =
+                findTinyPhotosList(
+                    doc
+                );
+
+
+            if (!ul) {
+
+                setStatus(
+                    "importStatus",
+                    "No se encontró ningún <ul>."
+                );
+
+                return;
             }
-        );
 
 
-    const url =
-        URL.createObjectURL(blob);
+            const lis =
+                Array.from(
+                    ul.children
+                )
+                .filter(
+                    function(element) {
+
+                        return (
+                            element.tagName
+                                .toLowerCase() ===
+                            "li"
+                        );
+
+                    }
+                );
 
 
-    const a =
-        document.createElement("a");
-
-    a.href = url;
-    a.download = "tiny-photos.html";
-
-    document.body.appendChild(a);
-
-    a.click();
-
-    a.remove();
-
-    URL.revokeObjectURL(url);
+            const imported = [];
 
 
-    setStatus(
-        "outputStatus",
-        "HTML descargado."
-    );
-}
+            lis.forEach(
+                function(li) {
+
+                    const item =
+                        importLi(li);
 
 
-/* =========================================================
-   RESET
-========================================================= */
+                    if (item) {
 
-function resetAll() {
-
-    const confirmed =
-        window.confirm(
-            "¿Seguro que quieres borrar todos los elementos?"
-        );
+                        item.id =
+                            makeId();
 
 
-    if (!confirmed) {
-        return;
-    }
+                        imported.push(
+                            item
+                        );
+                    }
+
+                }
+            );
 
 
-    items = [];
+            if (!imported.length) {
 
-    editingIndex = -1;
+                setStatus(
+                    "importStatus",
+                    "No se pudieron reconocer elementos."
+                );
 
-    saveItems();
-    renderItems();
-    generateOutput();
-    clearForm();
-
-
-    setStatus(
-        "outputStatus",
-        "Todos los elementos han sido borrados."
-    );
-}
+                return;
+            }
 
 
-/* =========================================================
-   EVENTOS
-========================================================= */
-
-$("elementType").addEventListener(
-    "change",
-    function() {
-
-        updateTypeFields();
-
-        setStatus(
-            "formStatus",
-            ""
-        );
-    }
-);
+            items =
+                imported;
 
 
-$("saveElementButton").addEventListener(
-    "click",
-    function() {
-
-        saveFormElement();
-    }
-);
+            saveItems();
+            renderItems();
+            generateOutput();
 
 
-$("cancelEditButton").addEventListener(
-    "click",
-    function() {
-
-        clearForm();
-    }
-);
+            clearForm();
 
 
-$("clearFormButton").addEventListener(
-    "click",
-    function() {
-
-        clearForm();
-    }
-);
+            setStatus(
+                "importStatus",
+                imported.length +
+                " elemento(s) importado(s) correctamente."
+            );
 
 
-$("copyButton").addEventListener(
-    "click",
-    function() {
-
-        copyOutput();
-    }
-);
+            $("importInput")
+                .value = "";
 
 
-$("downloadButton").addEventListener(
-    "click",
-    function() {
+        } catch (error) {
 
-        downloadOutput();
-    }
-);
-
-
-$("resetButton").addEventListener(
-    "click",
-    function() {
-
-        resetAll();
-    }
-);
-
-
-$("importButton").addEventListener(
-    "click",
-    function() {
-
-        importHtml();
-    }
-);
-
-
-$("clearImportButton").addEventListener(
-    "click",
-    function() {
-
-        $("importInput").value = "";
-
-        setStatus(
-            "importStatus",
-            ""
-        );
-    }
-);
-
-
-/*
-    Evitamos que pulsar Enter accidentalmente en un input
-    provoque comportamientos extraños.
-*/
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            event.key === "Escape" &&
-            dragState
-        ) {
-            cancelDrag();
+            setStatus(
+                "importStatus",
+                "Error al importar el HTML."
+            );
         }
     }
-);
 
 
-/* =========================================================
-   INICIALIZACIÓN
-========================================================= */
+    /*
+     * ============================================================
+     * EVENTOS
+     * ============================================================
+     */
 
-loadItems();
+    $("elementType").addEventListener(
+        "change",
+        function() {
 
-updateTypeFields();
+            updateTypeFields();
 
-renderItems();
 
-generateOutput();
+            setStatus(
+                "formStatus",
+                ""
+            );
+        }
+    );
 
+
+    $("addButton").addEventListener(
+        "click",
+        function() {
+
+            const item =
+                getFormData();
+
+
+            /*
+             * Si estamos editando un Blank y todavía
+             * no se ha elegido tipo.
+             */
+
+            if (!item) {
+
+                setStatus(
+                    "formStatus",
+                    "Selecciona un tipo de elemento antes de guardar."
+                );
+
+                return;
+            }
+
+
+            if (editingId !== null) {
+
+                const index =
+                    items.findIndex(
+                        function(existingItem) {
+
+                            return (
+                                existingItem.id ===
+                                editingId
+                            );
+
+                        }
+                    );
+
+
+                if (index < 0) {
+
+                    setStatus(
+                        "formStatus",
+                        "No se encontró el elemento que estás editando."
+                    );
+
+                    return;
+                }
+
+
+                item.id =
+                    editingId;
+
+
+                items[index] =
+                    item;
+
+
+                setStatus(
+                    "formStatus",
+                    "Elemento actualizado."
+                );
+
+            } else {
+
+                item.id =
+                    makeId();
+
+
+                items.push(
+                    item
+                );
+
+
+                setStatus(
+                    "formStatus",
+                    "Elemento añadido."
+                );
+            }
+
+
+            saveItems();
+            renderItems();
+            generateOutput();
+
+
+            clearForm();
+        }
+    );
+
+
+    $("cancelEditButton").addEventListener(
+        "click",
+        function() {
+
+            clearForm();
+
+
+            setStatus(
+                "formStatus",
+                "Edición cancelada."
+            );
+        }
+    );
+
+
+    $("resetButton").addEventListener(
+        "click",
+        function() {
+
+            if (!items.length) {
+                return;
+            }
+
+
+            if (
+                !confirm(
+                    "¿Seguro que quieres borrar todos los elementos?"
+                )
+            ) {
+
+                return;
+            }
+
+
+            items = [];
+
+
+            saveItems();
+            renderItems();
+            generateOutput();
+
+
+            clearForm();
+        }
+    );
+
+
+    $("copyButton").addEventListener(
+        "click",
+        async function() {
+
+            const value =
+                $("output").value;
+
+
+            try {
+
+                await navigator.clipboard.writeText(
+                    value
+                );
+
+
+                setStatus(
+                    "outputStatus",
+                    "HTML copiado al portapapeles."
+                );
+
+            } catch (error) {
+
+                $("output").select();
+
+
+                document.execCommand(
+                    "copy"
+                );
+
+
+                setStatus(
+                    "outputStatus",
+                    "HTML copiado."
+                );
+            }
+        }
+    );
+
+
+    $("downloadButton").addEventListener(
+        "click",
+        function() {
+
+            const value =
+                $("output").value;
+
+
+            const blob =
+                new Blob(
+                    [value],
+                    {
+                        type:
+                            "text/html;charset=utf-8"
+                    }
+                );
+
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+
+            link.href =
+                url;
+
+
+            link.download =
+                "tiny-photos.html";
+
+
+            document.body.appendChild(
+                link
+            );
+
+
+            link.click();
+
+
+            link.remove();
+
+
+            URL.revokeObjectURL(
+                url
+            );
+        }
+    );
+
+
+    $("importButton").addEventListener(
+        "click",
+        importHtml
+    );
+
+
+    /*
+     * ============================================================
+     * INICIALIZACIÓN
+     * ============================================================
+     */
+
+    loadItems();
+
+    updateTypeFields();
+
+    renderItems();
+
+    generateOutput();
+
+})();
 </script>
 
 </body>
