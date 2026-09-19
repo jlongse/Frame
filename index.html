@@ -1,1 +1,4854 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhotoBox Generator</title>
 
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 24px;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f3f3f3;
+        color: #333;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+    }
+
+    .intro {
+        margin: 0 0 22px;
+        color: #666;
+        line-height: 1.5;
+    }
+
+    .panel {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .panel h2 {
+        margin: 0 0 16px;
+        font-size: 20px;
+    }
+
+    .field {
+        margin-bottom: 14px;
+    }
+
+    .field.full {
+        grid-column: 1 / -1;
+    }
+
+    label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 7px;
+        padding: 10px 11px;
+        font: inherit;
+        background: #fff;
+        color: #333;
+    }
+
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+        line-height: 1.45;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #999;
+        box-shadow: 0 0 0 2px rgba(0,0,0,.05);
+    }
+
+    .help {
+        margin-top: 5px;
+        font-size: 12px;
+        color: #777;
+        line-height: 1.4;
+    }
+
+    button {
+        border: 1px solid #d2d2d2;
+        border-radius: 6px;
+        padding: 9px 13px;
+        cursor: pointer;
+        font-weight: 600;
+        background: #f7f7f7;
+        color: #333;
+        margin-right: 6px;
+        margin-bottom: 6px;
+        box-shadow: none;
+        transition:
+            background .15s ease,
+            border-color .15s ease,
+            color .15s ease,
+            transform .1s ease;
+    }
+
+    button:hover {
+        background: #ececec;
+        border-color: #bdbdbd;
+    }
+
+    button:active {
+        transform: translateY(1px);
+    }
+
+    button.secondary {
+        background: #f7f7f7;
+        color: #555;
+        border-color: #d2d2d2;
+    }
+
+    button.success {
+        background: #eeeeee;
+        color: #222;
+        border-color: #c8c8c8;
+    }
+
+    button.danger {
+        background: #f7f7f7;
+        color: #555;
+        border-color: #d2d2d2;
+    }
+
+    button.format {
+        background: #f7f7f7;
+        color: #444;
+        border-color: #d2d2d2;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .status {
+        min-height: 20px;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #666;
+    }
+
+    .status.success-text {
+        color: #333;
+    }
+
+    .status.error-text {
+        color: #a33;
+    }
+
+    .items-list {
+        min-height: 20px;
+    }
+
+    .empty {
+        padding: 22px;
+        text-align: center;
+        border: 1px dashed #ccc;
+        border-radius: 9px;
+        color: #777;
+        background: #fafafa;
+    }
+
+    .item {
+        position: relative;
+        background: #fafafa;
+        border: 1px solid #ddd;
+        border-radius: 9px;
+        padding: 12px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+        transform: scale(1);
+        transition:
+            opacity .15s ease,
+            transform .18s ease,
+            border-color .15s ease,
+            background .15s ease,
+            box-shadow .18s ease;
+    }
+
+    .item:hover {
+        background: #fdfdfd;
+        border-color: #cfcfcf;
+    }
+
+    .item.dragging {
+        opacity: .95;
+        background: #fff;
+        border-color: #999;
+        transform: scale(1.035) translateY(-2px);
+        box-shadow:
+            0 14px 30px rgba(0,0,0,.18),
+            0 3px 8px rgba(0,0,0,.10);
+        z-index: 1000;
+    }
+
+    .item.dragging::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 9px;
+        pointer-events: none;
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,.08);
+    }
+
+    .item.drag-placeholder {
+        box-sizing: border-box;
+        border: 2px dashed #c7c7c7;
+        border-radius: 9px;
+        background: #f5f5f5;
+        margin-bottom: 8px;
+        position: relative;
+        opacity: .95;
+        padding: 0;
+        cursor: default;
+        pointer-events: none;
+        touch-action: none;
+        box-shadow: none;
+        transform: none;
+        transition:
+            height .15s ease,
+            opacity .15s ease;
+    }
+
+    .drag-placeholder::before {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 50%;
+        height: 2px;
+        transform: translateY(-50%);
+        background: #d0d0d0;
+        border-radius: 999px;
+    }
+
+    body.drag-active {
+        user-select: none;
+        -webkit-user-select: none;
+        cursor: grabbing;
+    }
+
+    .item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .item-title {
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+
+    .item-description {
+        color: #777;
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .item-actions {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .item-actions button {
+        margin-bottom: 0;
+        padding: 6px 9px;
+        font-size: 12px;
+    }
+
+    .type-badge {
+        display: inline-block;
+        padding: 3px 7px;
+        border-radius: 999px;
+        background: #eaeaea;
+        color: #555;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .output {
+        min-height: 280px;
+        font-family: Consolas, Monaco, monospace;
+        font-size: 13px;
+        white-space: pre;
+    }
+
+    .import-area {
+        min-height: 220px;
+        font-family: Consolas, Monaco, monospace;
+        font-size: 13px;
+    }
+
+    .actions {
+        margin-top: 8px;
+    }
+
+    .separator {
+        height: 1px;
+        background: #eee;
+        margin: 18px 0;
+    }
+
+    .small-note {
+        font-size: 12px;
+        color: #777;
+        margin-top: 5px;
+    }
+
+    @media (max-width: 760px) {
+        body {
+            padding: 14px;
+        }
+
+        .item {
+            align-items: flex-start;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-actions button {
+            margin-right: 0;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>PhotoBox Generator</h1>
+
+    <p class="intro">
+        Crea, ordena, edita, duplica, importa y exporta tus elementos
+        para generar el bloque
+        <code>&lt;section class="tiny-photos"&gt;</code>.
+    </p>
+
+    <!-- AÑADIR / EDITAR -->
+    <section class="panel">
+
+        <h2 id="formTitle">Añadir elemento</h2>
+
+        <div class="field">
+            <label for="elementType">Tipo de elemento</label>
+
+            <select id="elementType">
+                <option value="polaroid">Polaroid</option>
+                <option value="sticky">Sticky Note</option>
+                <option value="sticky-fecha">Sticky Note + Fecha</option>
+                <option value="sticky-png">Sticky PNG</option>
+                <option value="ticket">Ticket</option>
+                <option value="png-frame">PNG Frame</option>
+                <option value="diary">Diary Notes</option>
+                <option value="film-strip">Film Strip</option>
+            </select>
+        </div>
+
+
+        <!-- POLAROID -->
+        <div id="fields-polaroid">
+
+            <div class="field">
+                <label for="polaroidImage">
+                    URL de la imagen
+                </label>
+
+                <input
+                    id="polaroidImage"
+                    type="text"
+                    placeholder="https://..."
+                >
+            </div>
+
+            <div class="field">
+                <label for="polaroidAlt">
+                    ALT de la imagen
+                </label>
+
+                <input
+                    id="polaroidAlt"
+                    type="text"
+                    placeholder="Descripción de la imagen"
+                >
+            </div>
+
+            <div class="field">
+                <label for="polaroidCaption">
+                    Texto de la Polaroid
+                </label>
+
+                <textarea
+                    id="polaroidCaption"
+                    placeholder="Primera línea&#10;Segunda línea"
+                ></textarea>
+
+                <div class="help">
+                    Cada línea se convertirá en una línea de texto.
+                    La primera letra de cada palabra se generará
+                    en mayúscula en el HTML final.
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- STICKY -->
+        <div id="fields-sticky">
+
+            <div class="field">
+
+                <label for="stickyText">
+                    Texto del Sticky Note
+                </label>
+
+                <textarea
+                    id="stickyText"
+                    placeholder="Escribe aquí el texto..."
+                ></textarea>
+
+                <div class="help">
+                    La primera letra de cada palabra se generará
+                    en mayúscula en el HTML final.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STICKY FECHA -->
+        <div id="fields-sticky-fecha">
+
+            <div class="field">
+
+                <label for="stickyFechaText">
+                    Texto del Sticky Note
+                </label>
+
+                <textarea
+                    id="stickyFechaText"
+                    placeholder="Escribe aquí el texto..."
+                ></textarea>
+
+                <div class="help">
+                    La primera letra de cada palabra se generará
+                    en mayúscula en el HTML final.
+                </div>
+
+            </div>
+
+            <div class="field">
+
+                <label for="stickyFechaFecha">
+                    Fecha
+                </label>
+
+                <input
+                    id="stickyFechaFecha"
+                    type="text"
+                    placeholder="Ej: 24.08.2025"
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- STICKY PNG -->
+        <div id="fields-sticky-png">
+
+            <div class="field">
+
+                <label for="stickyPngImage">
+                    URL del PNG
+                </label>
+
+                <input
+                    id="stickyPngImage"
+                    type="text"
+                    placeholder="https://..."
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label for="stickyPngAlt">
+                    ALT del PNG
+                </label>
+
+                <input
+                    id="stickyPngAlt"
+                    type="text"
+                    placeholder="Descripción del PNG"
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- TICKET -->
+        <div id="fields-ticket">
+
+            <div class="field">
+
+                <label for="ticketImage">
+                    URL de la imagen del Ticket
+                </label>
+
+                <input
+                    id="ticketImage"
+                    type="text"
+                    placeholder="https://..."
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label for="ticketAlt">
+                    ALT de la imagen
+                </label>
+
+                <input
+                    id="ticketAlt"
+                    type="text"
+                    placeholder="Descripción del ticket"
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- PNG FRAME -->
+        <div id="fields-png-frame">
+
+            <div class="field">
+
+                <label for="pngFrameImage">
+                    URL del PNG
+                </label>
+
+                <input
+                    id="pngFrameImage"
+                    type="text"
+                    placeholder="https://..."
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label for="pngFrameAlt">
+                    ALT del PNG
+                </label>
+
+                <input
+                    id="pngFrameAlt"
+                    type="text"
+                    placeholder="Descripción del PNG"
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label for="pngFrameScale">
+                    Escala del PNG
+                </label>
+
+                <input
+                    id="pngFrameScale"
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    value="1.4"
+                >
+
+                <div class="help">
+                    Ejemplo: 1.4
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- DIARY -->
+        <div id="fields-diary">
+
+            <div class="field">
+
+                <label for="diaryText">
+                    Contenido del Diary Notes
+                </label>
+
+                <textarea
+                    id="diaryText"
+                    placeholder="Primer párrafo&#10;---&#10;Segundo párrafo"
+                ></textarea>
+
+                <div class="help">
+                    Escribe <strong>---</strong> en una línea independiente
+                    para crear un nuevo párrafo separado por
+                    <code>&lt;hr&gt;</code>.
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                id="formatDiaryButton"
+                class="format"
+            >
+                ✨ Formatear Diary
+            </button>
+
+        </div>
+
+
+        <!-- FILM STRIP -->
+        <div id="fields-film-strip">
+
+            <div class="field">
+
+                <label for="filmStripName">
+                    Nombre / comentario del Film Strip
+                </label>
+
+                <input
+                    id="filmStripName"
+                    type="text"
+                    placeholder="Ej: Viaje por Patagonia"
+                >
+
+                <div class="help">
+                    Este nombre sirve para identificar el Film Strip
+                    en la lista de elementos activos.
+                    No se añadirá al HTML generado.
+                </div>
+
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="field">
+
+                <label for="filmStripImage1">
+                    Imagen 1
+                </label>
+
+                <input
+                    id="filmStripImage1"
+                    type="text"
+                    placeholder="https://..."
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label for="filmStripAlt1">
+                    ALT 1
+                </label>
+
+                <input
+                    id="filmStripAlt1"
+                    type="text"
+                    placeholder="Descripción de la imagen 1"
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label for="filmStripImage2">
+                    Imagen 2
+                </label>
+
+                <input
+                    id="filmStripImage2"
+                    type="text"
+                    placeholder="https://..."
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label for="filmStripAlt2">
+                    ALT 2
+                </label>
+
+                <input
+                    id="filmStripAlt2"
+                    type="text"
+                    placeholder="Descripción de la imagen 2"
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label for="filmStripImage3">
+                    Imagen 3
+                </label>
+
+                <input
+                    id="filmStripImage3"
+                    type="text"
+                    placeholder="https://..."
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label for="filmStripAlt3">
+                    ALT 3
+                </label>
+
+                <input
+                    id="filmStripAlt3"
+                    type="text"
+                    placeholder="Descripción de la imagen 3"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="actions">
+
+            <button
+                type="button"
+                id="saveButton"
+                class="success"
+            >
+                Añadir elemento
+            </button>
+
+            <button
+                type="button"
+                id="cancelButton"
+                class="secondary hidden"
+            >
+                Cancelar edición
+            </button>
+
+        </div>
+
+        <div id="formStatus" class="status"></div>
+
+    </section>
+
+
+    <!-- ELEMENTOS ACTIVOS -->
+    <section class="panel">
+
+        <h2>Elementos activos</h2>
+
+        <div
+            class="help"
+            style="margin-bottom:12px;"
+        >
+            Arrastra los elementos para cambiar su orden.
+        </div>
+
+        <div
+            id="itemsList"
+            class="items-list"
+        ></div>
+
+    </section>
+
+
+    <!-- HTML GENERADO -->
+    <section class="panel">
+
+        <h2>HTML generado</h2>
+
+        <textarea
+            id="output"
+            class="output"
+            spellcheck="false"
+            readonly
+        ></textarea>
+
+        <div class="actions">
+
+            <button
+                type="button"
+                id="copyButton"
+            >
+                Copiar HTML
+            </button>
+
+            <button
+                type="button"
+                id="downloadButton"
+            >
+                Descargar HTML
+            </button>
+
+            <button
+                type="button"
+                id="resetButton"
+                class="danger"
+            >
+                Borrar todo
+            </button>
+
+        </div>
+
+        <div
+            id="outputStatus"
+            class="status"
+        ></div>
+
+    </section>
+
+
+    <!-- IMPORTAR -->
+    <section class="panel">
+
+        <h2>Importar HTML existente</h2>
+
+        <div
+            class="help"
+            style="margin-bottom:12px;"
+        >
+            Puedes pegar un documento HTML completo,
+            un <code>&lt;section class="tiny-photos"&gt;</code>
+            o directamente un <code>&lt;ul&gt;</code>.
+        </div>
+
+        <textarea
+            id="importArea"
+            class="import-area"
+            spellcheck="false"
+            placeholder="Pega aquí tu HTML..."
+        ></textarea>
+
+        <div class="actions">
+
+            <button
+                type="button"
+                id="importButton"
+                class="success"
+            >
+                Importar HTML
+            </button>
+
+            <button
+                type="button"
+                id="clearImportButton"
+                class="secondary"
+            >
+                Limpiar
+            </button>
+
+        </div>
+
+        <div
+            id="importStatus"
+            class="status"
+        ></div>
+
+    </section>
+
+</div>
+
+
+<script>
+"use strict";
+
+
+const STORAGE_KEY =
+    "photobox-generator-items-v4";
+
+
+const TYPE_NAMES = {
+
+    "polaroid":
+        "Polaroid",
+
+    "sticky":
+        "Sticky Note",
+
+    "sticky-fecha":
+        "Sticky Note + Fecha",
+
+    "sticky-png":
+        "Sticky PNG",
+
+    "ticket":
+        "Ticket",
+
+    "png-frame":
+        "PNG Frame",
+
+    "diary":
+        "Diary Notes",
+
+    "film-strip":
+        "Film Strip"
+
+};
+
+
+let items = [];
+
+let editingIndex = -1;
+
+
+/* =========================================================
+   UTILIDADES
+========================================================= */
+
+function $(id) {
+    return document.getElementById(id);
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+}
+
+
+function capitalizeWords(value) {
+
+    return String(value ?? "")
+        .toLocaleLowerCase("es-ES")
+        .replace(
+            /(^|[\s\u00A0]+)([^\s\u00A0])/g,
+            function(
+                match,
+                separator,
+                firstLetter
+            ) {
+
+                return (
+                    separator +
+                    firstLetter.toLocaleUpperCase("es-ES")
+                );
+
+            }
+        );
+
+}
+
+
+function normalizeLineEndings(value) {
+
+    return String(value ?? "")
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n");
+
+}
+
+
+function setStatus(
+    id,
+    message,
+    type = ""
+) {
+
+    const element = $(id);
+
+    if (!element) {
+        return;
+    }
+
+    element.textContent =
+        message || "";
+
+    element.className =
+        "status";
+
+    if (type === "success") {
+
+        element.classList.add(
+            "success-text"
+        );
+
+    }
+
+    if (type === "error") {
+
+        element.classList.add(
+            "error-text"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   DIARY NOTES
+========================================================= */
+
+/*
+    REGLA DEL DIARY:
+
+    Texto:
+
+    Primer párrafo
+    ---
+    Segundo párrafo
+
+    genera:
+
+    <p>Primer párrafo</p>
+    <hr>
+    <p>Segundo párrafo</p>
+
+    Los tres guiones NO aparecen nunca
+    en el HTML final.
+*/
+
+function formatDiaryToHtml(text) {
+
+    const normalized =
+        normalizeLineEndings(text);
+
+    const parts =
+        normalized.split(
+            /^\s*---\s*$/m
+        );
+
+    return parts
+        .map(function(part) {
+
+            const paragraph =
+                part.trim();
+
+            if (!paragraph) {
+                return "";
+            }
+
+            const escaped =
+                escapeHtml(paragraph)
+                    .replace(/\n/g, "<br>");
+
+            return `<p>${escaped}</p>`;
+
+        })
+        .filter(function(part) {
+
+            return part.length > 0;
+
+        })
+        .join("\n<hr>\n");
+
+}
+
+
+function formatDiaryText() {
+
+    const textarea =
+        $("diaryText");
+
+    if (!textarea) {
+        return;
+    }
+
+    const normalized =
+        normalizeLineEndings(
+            textarea.value
+        );
+
+    const paragraphs =
+        normalized
+            .split(/^\s*---\s*$/m)
+            .map(function(paragraph) {
+
+                return paragraph.trim();
+
+            })
+            .filter(function(paragraph) {
+
+                return paragraph.length > 0;
+
+            });
+
+    textarea.value =
+        paragraphs.join(
+            "\n---\n"
+        );
+
+    setStatus(
+        "formStatus",
+        "Diary formateado correctamente.",
+        "success"
+    );
+
+}
+
+
+/* =========================================================
+   CAMPOS SEGÚN TIPO
+========================================================= */
+
+const allFieldTypes = [
+
+    "polaroid",
+    "sticky",
+    "sticky-fecha",
+    "sticky-png",
+    "ticket",
+    "png-frame",
+    "diary",
+    "film-strip"
+
+];
+
+
+function updateTypeFields() {
+
+    const selectedType =
+        $("elementType").value;
+
+    allFieldTypes.forEach(
+        function(type) {
+
+            const group =
+                $("fields-" + type);
+
+            if (!group) {
+                return;
+            }
+
+            group.classList.toggle(
+                "hidden",
+                type !== selectedType
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   FORMULARIO
+========================================================= */
+
+function clearForm() {
+
+    editingIndex = -1;
+
+    $("formTitle").textContent =
+        "Añadir elemento";
+
+    $("saveButton").textContent =
+        "Añadir elemento";
+
+    $("cancelButton")
+        .classList.add("hidden");
+
+    $("elementType").value =
+        "polaroid";
+
+
+    $("polaroidImage").value =
+        "";
+
+    $("polaroidAlt").value =
+        "";
+
+    $("polaroidCaption").value =
+        "";
+
+
+    $("stickyText").value =
+        "";
+
+
+    $("stickyFechaText").value =
+        "";
+
+    $("stickyFechaFecha").value =
+        "";
+
+
+    $("stickyPngImage").value =
+        "";
+
+    $("stickyPngAlt").value =
+        "";
+
+
+    $("ticketImage").value =
+        "";
+
+    $("ticketAlt").value =
+        "";
+
+
+    $("pngFrameImage").value =
+        "";
+
+    $("pngFrameScale").value =
+        "1.4";
+
+    $("pngFrameAlt").value =
+        "";
+
+
+    $("diaryText").value =
+        "";
+
+
+    $("filmStripName").value =
+        "";
+
+    $("filmStripImage1").value =
+        "";
+
+    $("filmStripAlt1").value =
+        "";
+
+    $("filmStripImage2").value =
+        "";
+
+    $("filmStripAlt2").value =
+        "";
+
+    $("filmStripImage3").value =
+        "";
+
+    $("filmStripAlt3").value =
+        "";
+
+
+    updateTypeFields();
+
+    setStatus(
+        "formStatus",
+        ""
+    );
+
+}
+
+
+function getFormData() {
+
+    const type =
+        $("elementType").value;
+
+
+    if (type === "polaroid") {
+
+        return {
+
+            type: "polaroid",
+
+            image:
+                $("polaroidImage")
+                    .value
+                    .trim(),
+
+            alt:
+                $("polaroidAlt")
+                    .value
+                    .trim(),
+
+            caption:
+                normalizeLineEndings(
+                    $("polaroidCaption").value
+                )
+
+        };
+
+    }
+
+
+    if (type === "sticky") {
+
+        return {
+
+            type: "sticky",
+
+            text:
+                normalizeLineEndings(
+                    $("stickyText").value
+                )
+
+        };
+
+    }
+
+
+    if (type === "sticky-fecha") {
+
+        return {
+
+            type: "sticky-fecha",
+
+            text:
+                normalizeLineEndings(
+                    $("stickyFechaText").value
+                ),
+
+            date:
+                $("stickyFechaFecha")
+                    .value
+                    .trim()
+
+        };
+
+    }
+
+
+    if (type === "sticky-png") {
+
+        return {
+
+            type: "sticky-png",
+
+            image:
+                $("stickyPngImage")
+                    .value
+                    .trim(),
+
+            alt:
+                $("stickyPngAlt")
+                    .value
+                    .trim()
+
+        };
+
+    }
+
+
+    if (type === "ticket") {
+
+        return {
+
+            type: "ticket",
+
+            image:
+                $("ticketImage")
+                    .value
+                    .trim(),
+
+            alt:
+                $("ticketAlt")
+                    .value
+                    .trim()
+
+        };
+
+    }
+
+
+    if (type === "png-frame") {
+
+        return {
+
+            type: "png-frame",
+
+            image:
+                $("pngFrameImage")
+                    .value
+                    .trim(),
+
+            scale:
+                $("pngFrameScale")
+                    .value
+                    .trim() ||
+                "1.4",
+
+            alt:
+                $("pngFrameAlt")
+                    .value
+                    .trim()
+
+        };
+
+    }
+
+
+    if (type === "diary") {
+
+        return {
+
+            type: "diary",
+
+            text:
+                normalizeLineEndings(
+                    $("diaryText").value
+                )
+
+        };
+
+    }
+
+
+    if (type === "film-strip") {
+
+        return {
+
+            type: "film-strip",
+
+            name:
+                $("filmStripName")
+                    .value
+                    .trim(),
+
+            image1:
+                $("filmStripImage1")
+                    .value
+                    .trim(),
+
+            alt1:
+                $("filmStripAlt1")
+                    .value
+                    .trim(),
+
+            image2:
+                $("filmStripImage2")
+                    .value
+                    .trim(),
+
+            alt2:
+                $("filmStripAlt2")
+                    .value
+                    .trim(),
+
+            image3:
+                $("filmStripImage3")
+                    .value
+                    .trim(),
+
+            alt3:
+                $("filmStripAlt3")
+                    .value
+                    .trim()
+
+        };
+
+    }
+
+
+    return null;
+
+}
+
+
+function loadFormData(item) {
+
+    if (!item) {
+        return;
+    }
+
+
+    $("elementType").value =
+        item.type;
+
+
+    if (item.type === "polaroid") {
+
+        $("polaroidImage").value =
+            item.image || "";
+
+        $("polaroidAlt").value =
+            item.alt || "";
+
+        $("polaroidCaption").value =
+            item.caption || "";
+
+    }
+
+
+    if (item.type === "sticky") {
+
+        $("stickyText").value =
+            item.text || "";
+
+    }
+
+
+    if (item.type === "sticky-fecha") {
+
+        $("stickyFechaText").value =
+            item.text || "";
+
+        $("stickyFechaFecha").value =
+            item.date || "";
+
+    }
+
+
+    if (item.type === "sticky-png") {
+
+        $("stickyPngImage").value =
+            item.image || "";
+
+        $("stickyPngAlt").value =
+            item.alt || "";
+
+    }
+
+
+    if (item.type === "ticket") {
+
+        $("ticketImage").value =
+            item.image || "";
+
+        $("ticketAlt").value =
+            item.alt || "";
+
+    }
+
+
+    if (item.type === "png-frame") {
+
+        $("pngFrameImage").value =
+            item.image || "";
+
+        $("pngFrameScale").value =
+            item.scale || "1.4";
+
+        $("pngFrameAlt").value =
+            item.alt || "";
+
+    }
+
+
+    if (item.type === "diary") {
+
+        $("diaryText").value =
+            item.text || "";
+
+    }
+
+
+    if (item.type === "film-strip") {
+
+        $("filmStripName").value =
+            item.name || "";
+
+        $("filmStripImage1").value =
+            item.image1 || "";
+
+        $("filmStripAlt1").value =
+            item.alt1 || "";
+
+        $("filmStripImage2").value =
+            item.image2 || "";
+
+        $("filmStripAlt2").value =
+            item.alt2 || "";
+
+        $("filmStripImage3").value =
+            item.image3 || "";
+
+        $("filmStripAlt3").value =
+            item.alt3 || "";
+
+    }
+
+
+    updateTypeFields();
+
+}
+
+
+/* =========================================================
+   DESCRIPCIÓN DE ELEMENTOS
+========================================================= */
+
+function getItemDescription(item) {
+
+    if (item.type === "polaroid") {
+
+        return (
+            item.alt ||
+            item.image ||
+            "(sin imagen)"
+        );
+
+    }
+
+
+    if (item.type === "sticky") {
+
+        return (
+            item.text ||
+            "(sin texto)"
+        );
+
+    }
+
+
+    if (item.type === "sticky-fecha") {
+
+        return item.date
+            ? item.date +
+              (
+                  item.text
+                      ? " — " + item.text
+                      : ""
+              )
+            : item.text ||
+              "(sin contenido)";
+
+    }
+
+
+    if (item.type === "sticky-png") {
+
+        return (
+            item.alt ||
+            "(sin ALT)"
+        );
+
+    }
+
+
+    if (item.type === "ticket") {
+
+        return (
+            item.alt ||
+            item.image ||
+            "(sin imagen)"
+        );
+
+    }
+
+
+    if (item.type === "png-frame") {
+
+        return (
+            item.alt ||
+            item.image ||
+            "(sin imagen)"
+        );
+
+    }
+
+
+    if (item.type === "diary") {
+
+        const text =
+            normalizeLineEndings(
+                item.text || ""
+            )
+            .replace(/\s+/g, " ")
+            .trim();
+
+        return (
+            text ||
+            "(sin contenido)"
+        );
+
+    }
+
+
+    if (item.type === "film-strip") {
+
+        return (
+            item.name ||
+            "Sin nombre"
+        );
+
+    }
+
+
+    return "";
+
+}
+
+
+/* =========================================================
+   GENERACIÓN HTML
+========================================================= */
+
+function elementToHtml(item) {
+
+
+    /* POLAROID */
+
+    if (item.type === "polaroid") {
+
+        const captionLines =
+            normalizeLineEndings(
+                item.caption || ""
+            )
+            .split("\n")
+            .map(function(line) {
+
+                return line.trim();
+
+            })
+            .filter(function(line) {
+
+                return line.length > 0;
+
+            })
+            .map(function(line) {
+
+                return (
+                    `<li>` +
+                    escapeHtml(
+                        capitalizeWords(line)
+                    ) +
+                    `</li>`
+                );
+
+            })
+            .join("\n");
+
+
+        return `<li>
+<p><img src="${escapeHtml(item.image || "")}" alt="${escapeHtml(item.alt || "")}"></p>
+<ul>${captionLines ? "\n" + captionLines + "\n" : ""}</ul>
+</li>`;
+
+    }
+
+
+    /* STICKY */
+
+    if (item.type === "sticky") {
+
+        const text =
+            capitalizeWords(
+                item.text || ""
+            );
+
+
+        return `<li>
+<p>${escapeHtml(text)}</p>
+</li>`;
+
+    }
+
+
+    /* STICKY + FECHA */
+
+    if (item.type === "sticky-fecha") {
+
+        const text =
+            capitalizeWords(
+                item.text || ""
+            );
+
+
+        return `<li>
+<p>${escapeHtml(text)}</p>
+<ul><li>${escapeHtml(item.date || "")}</li></ul>
+</li>`;
+
+    }
+
+
+    /* STICKY PNG */
+
+    if (item.type === "sticky-png") {
+
+        return `<li>
+<img src="${escapeHtml(item.image || "")}" class="sticky-drawing" alt="${escapeHtml(item.alt || "")}">
+<p></p>
+</li>`;
+
+    }
+
+
+    /* TICKET */
+
+    if (item.type === "ticket") {
+
+        return `<li class="ticket-frame">
+<img src="${escapeHtml(item.image || "")}" alt="${escapeHtml(item.alt || "")}">
+</li>`;
+
+    }
+
+
+    /* PNG FRAME */
+
+    if (item.type === "png-frame") {
+
+        return `<li class="png-frame" style="--png-scale: ${escapeHtml(item.scale || "1.4")};">
+<img src="${escapeHtml(item.image || "")}" alt="${escapeHtml(item.alt || "")}">
+</li>`;
+
+    }
+
+
+    /* DIARY NOTES */
+
+    if (item.type === "diary") {
+
+        const diaryContent =
+            formatDiaryToHtml(
+                item.text || ""
+            );
+
+
+        return `<li>
+<img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Diario">
+${diaryContent}
+</li>`;
+
+    }
+
+
+    /* FILM STRIP */
+
+    if (item.type === "film-strip") {
+
+        return `<li class="film-strip">
+  <div class="film-frame">
+    <img src="${escapeHtml(item.image1 || "")}" alt="${escapeHtml(item.alt1 || "")}">
+  </div>
+  <div class="film-frame">
+    <img src="${escapeHtml(item.image2 || "")}" alt="${escapeHtml(item.alt2 || "")}">
+  </div>
+  <div class="film-frame">
+    <img src="${escapeHtml(item.image3 || "")}" alt="${escapeHtml(item.alt3 || "")}">
+  </div>
+</li>`;
+
+    }
+
+
+    return "";
+
+}
+
+
+/* =========================================================
+   OUTPUT
+========================================================= */
+
+function generateOutput() {
+
+    const htmlItems =
+        items
+            .map(function(item) {
+
+                return elementToHtml(item);
+
+            })
+            .filter(Boolean)
+            .join("\n");
+
+
+    const result =
+`<section class="tiny-photos">
+<ul>
+${htmlItems}
+</ul>
+</section>`;
+
+
+    $("output").value =
+        result;
+
+}
+
+
+/* =========================================================
+   LOCAL STORAGE
+========================================================= */
+
+function saveToStorage() {
+
+    try {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(items)
+        );
+
+    } catch (error) {
+
+        console.error(
+            "No se pudo guardar:",
+            error
+        );
+
+    }
+
+}
+
+
+function loadFromStorage() {
+
+    try {
+
+        const saved =
+            localStorage.getItem(
+                STORAGE_KEY
+            );
+
+
+        if (!saved) {
+
+            items = [];
+
+            return;
+
+        }
+
+
+        const parsed =
+            JSON.parse(saved);
+
+
+        if (Array.isArray(parsed)) {
+
+            items = parsed;
+
+        } else {
+
+            items = [];
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "No se pudo cargar:",
+            error
+        );
+
+        items = [];
+
+    }
+
+}
+
+
+/* =========================================================
+   RENDER ELEMENTOS
+========================================================= */
+
+function renderItems() {
+
+    const list =
+        $("itemsList");
+
+    list.innerHTML = "";
+
+
+    if (!items.length) {
+
+        const empty =
+            document.createElement(
+                "div"
+            );
+
+        empty.className =
+            "empty";
+
+        empty.textContent =
+            "No hay elementos todavía.";
+
+        list.appendChild(
+            empty
+        );
+
+        return;
+
+    }
+
+
+    items.forEach(
+        function(item) {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+
+            row.className =
+                "item";
+
+            row.dataset.type =
+                item.type;
+
+            row._item =
+                item;
+
+
+            const info =
+                document.createElement(
+                    "div"
+                );
+
+            info.className =
+                "item-info";
+
+
+            const badge =
+                document.createElement(
+                    "div"
+                );
+
+            badge.className =
+                "type-badge";
+
+            badge.textContent =
+                TYPE_NAMES[item.type] ||
+                item.type;
+
+
+            const title =
+                document.createElement(
+                    "div"
+                );
+
+            title.className =
+                "item-title";
+
+            title.textContent =
+                (
+                    items.indexOf(item) + 1
+                ) +
+                ". " +
+                (
+                    TYPE_NAMES[item.type] ||
+                    item.type
+                );
+
+
+            const description =
+                document.createElement(
+                    "div"
+                );
+
+            description.className =
+                "item-description";
+
+            description.textContent =
+                getItemDescription(
+                    item
+                );
+
+
+            info.appendChild(
+                badge
+            );
+
+            info.appendChild(
+                title
+            );
+
+            info.appendChild(
+                description
+            );
+
+
+            const actions =
+                document.createElement(
+                    "div"
+                );
+
+            actions.className =
+                "item-actions";
+
+
+            /* SUBIR */
+
+            const upButton =
+                document.createElement(
+                    "button"
+                );
+
+            upButton.type =
+                "button";
+
+            upButton.textContent =
+                "↑";
+
+            upButton.title =
+                "Subir";
+
+
+            upButton.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const index =
+                        items.indexOf(
+                            row._item
+                        );
+
+
+                    if (index > 0) {
+
+                        const temp =
+                            items[index - 1];
+
+                        items[index - 1] =
+                            items[index];
+
+                        items[index] =
+                            temp;
+
+
+                        saveToStorage();
+
+                        renderItems();
+
+                        generateOutput();
+
+                    }
+
+                }
+            );
+
+
+            /* BAJAR */
+
+            const downButton =
+                document.createElement(
+                    "button"
+                );
+
+            downButton.type =
+                "button";
+
+            downButton.textContent =
+                "↓";
+
+            downButton.title =
+                "Bajar";
+
+
+            downButton.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const index =
+                        items.indexOf(
+                            row._item
+                        );
+
+
+                    if (
+                        index !== -1 &&
+                        index <
+                            items.length - 1
+                    ) {
+
+                        const temp =
+                            items[index + 1];
+
+                        items[index + 1] =
+                            items[index];
+
+                        items[index] =
+                            temp;
+
+
+                        saveToStorage();
+
+                        renderItems();
+
+                        generateOutput();
+
+                    }
+
+                }
+            );
+
+
+            /* EDITAR */
+
+            const editButton =
+                document.createElement(
+                    "button"
+                );
+
+            editButton.type =
+                "button";
+
+            editButton.textContent =
+                "Editar";
+
+
+            editButton.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const index =
+                        items.indexOf(
+                            row._item
+                        );
+
+
+                    if (index === -1) {
+                        return;
+                    }
+
+
+                    editingIndex =
+                        index;
+
+
+                    $("formTitle")
+                        .textContent =
+                        "Editar elemento";
+
+
+                    $("saveButton")
+                        .textContent =
+                        "Guardar cambios";
+
+
+                    $("cancelButton")
+                        .classList.remove(
+                            "hidden"
+                        );
+
+
+                    loadFormData(
+                        items[index]
+                    );
+
+
+                    window.scrollTo({
+
+                        top: 0,
+
+                        behavior: "smooth"
+
+                    });
+
+
+                    setStatus(
+                        "formStatus",
+                        "Editando elemento."
+                    );
+
+                }
+            );
+
+
+            /* DUPLICAR */
+
+            const duplicateButton =
+                document.createElement(
+                    "button"
+                );
+
+            duplicateButton.type =
+                "button";
+
+            duplicateButton.textContent =
+                "Duplicar";
+
+
+            duplicateButton.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const index =
+                        items.indexOf(
+                            row._item
+                        );
+
+
+                    if (index === -1) {
+                        return;
+                    }
+
+
+                    const copy =
+                        JSON.parse(
+                            JSON.stringify(
+                                items[index]
+                            )
+                        );
+
+
+                    items.splice(
+                        index + 1,
+                        0,
+                        copy
+                    );
+
+
+                    saveToStorage();
+
+                    renderItems();
+
+                    generateOutput();
+
+
+                    setStatus(
+                        "formStatus",
+                        "Elemento duplicado.",
+                        "success"
+                    );
+
+                }
+            );
+
+
+            /* BORRAR */
+
+            const deleteButton =
+                document.createElement(
+                    "button"
+                );
+
+            deleteButton.type =
+                "button";
+
+            deleteButton.textContent =
+                "Borrar";
+
+
+            deleteButton.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const index =
+                        items.indexOf(
+                            row._item
+                        );
+
+
+                    if (index === -1) {
+                        return;
+                    }
+
+
+                    items.splice(
+                        index,
+                        1
+                    );
+
+
+                    if (
+                        editingIndex ===
+                        index
+                    ) {
+
+                        clearForm();
+
+                    } else if (
+                        editingIndex >
+                        index
+                    ) {
+
+                        editingIndex--;
+
+                    }
+
+
+                    saveToStorage();
+
+                    renderItems();
+
+                    generateOutput();
+
+
+                    setStatus(
+                        "formStatus",
+                        "Elemento eliminado.",
+                        "success"
+                    );
+
+                }
+            );
+
+
+            actions.appendChild(
+                upButton
+            );
+
+            actions.appendChild(
+                downButton
+            );
+
+            actions.appendChild(
+                editButton
+            );
+
+            actions.appendChild(
+                duplicateButton
+            );
+
+            actions.appendChild(
+                deleteButton
+            );
+
+
+            row.appendChild(
+                info
+            );
+
+            row.appendChild(
+                actions
+            );
+
+
+            list.appendChild(
+                row
+            );
+
+
+            setupDrag(row);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   DRAG & DROP
+========================================================= */
+
+let dragState = null;
+
+
+function getItemRows() {
+
+    return Array.from(
+        $("itemsList").children
+    )
+    .filter(function(element) {
+
+        return (
+            element.classList.contains(
+                "item"
+            ) &&
+            !element.classList.contains(
+                "drag-placeholder"
+            )
+        );
+
+    });
+
+}
+
+
+function animateRows(
+    beforeRects
+) {
+
+    getItemRows().forEach(
+        function(row) {
+
+            if (
+                dragState &&
+                row === dragState.row
+            ) {
+                return;
+            }
+
+
+            const first =
+                beforeRects.get(row);
+
+
+            if (!first) {
+                return;
+            }
+
+
+            const last =
+                row.getBoundingClientRect();
+
+
+            const deltaY =
+                first.top -
+                last.top;
+
+
+            if (
+                Math.abs(deltaY) < 1
+            ) {
+                return;
+            }
+
+
+            row.animate(
+
+                [
+                    {
+                        transform:
+                            `translateY(${deltaY}px)`
+                    },
+
+                    {
+                        transform:
+                            "translateY(0)"
+                    }
+
+                ],
+
+                {
+                    duration: 180,
+
+                    easing:
+                        "cubic-bezier(.2,.8,.2,1)"
+
+                }
+
+            );
+
+        }
+    );
+
+}
+
+
+function movePlaceholder(
+    beforeElement
+) {
+
+    if (!dragState) {
+        return;
+    }
+
+
+    const list =
+        $("itemsList");
+
+    const placeholder =
+        dragState.placeholder;
+
+
+    if (!placeholder) {
+        return;
+    }
+
+
+    const currentBefore =
+        placeholder.nextElementSibling;
+
+
+    if (
+        beforeElement ===
+        currentBefore
+    ) {
+        return;
+    }
+
+
+    const beforeRects =
+        new Map();
+
+
+    getItemRows().forEach(
+        function(row) {
+
+            if (
+                row !==
+                dragState.row
+            ) {
+
+                beforeRects.set(
+                    row,
+                    row.getBoundingClientRect()
+                );
+
+            }
+
+        }
+    );
+
+
+    if (beforeElement) {
+
+        list.insertBefore(
+            placeholder,
+            beforeElement
+        );
+
+    } else {
+
+        list.appendChild(
+            placeholder
+        );
+
+    }
+
+
+    animateRows(
+        beforeRects
+    );
+
+}
+
+
+function updatePlaceholder(
+    clientY
+) {
+
+    if (!dragState) {
+        return;
+    }
+
+
+    const rows =
+        getItemRows()
+            .filter(function(row) {
+
+                return (
+                    row !==
+                    dragState.row
+                );
+
+            });
+
+
+    let beforeElement =
+        null;
+
+
+    for (
+        const row of rows
+    ) {
+
+        const rect =
+            row.getBoundingClientRect();
+
+
+        const midpoint =
+            rect.top +
+            rect.height / 2;
+
+
+        if (
+            clientY <
+            midpoint
+        ) {
+
+            beforeElement =
+                row;
+
+            break;
+
+        }
+
+    }
+
+
+    movePlaceholder(
+        beforeElement
+    );
+
+}
+
+
+function cleanupDragStyles(
+    row
+) {
+
+    if (!row) {
+        return;
+    }
+
+
+    row.style.position =
+        "";
+
+    row.style.left =
+        "";
+
+    row.style.top =
+        "";
+
+    row.style.width =
+        "";
+
+    row.style.height =
+        "";
+
+    row.style.margin =
+        "";
+
+    row.style.zIndex =
+        "";
+
+    row.style.pointerEvents =
+        "";
+
+    row.style.transition =
+        "";
+
+    row.style.transform =
+        "";
+
+}
+
+
+function finishDrag() {
+
+    if (!dragState) {
+        return;
+    }
+
+
+    const state =
+        dragState;
+
+    dragState =
+        null;
+
+
+    document.body.classList.remove(
+        "drag-active"
+    );
+
+
+    const row =
+        state.row;
+
+    const placeholder =
+        state.placeholder;
+
+    const list =
+        $("itemsList");
+
+
+    if (
+        !row ||
+        !row.isConnected ||
+        !list
+    ) {
+
+        cleanupDragStyles(
+            row
+        );
+
+        return;
+
+    }
+
+
+    let targetRect =
+        null;
+
+
+    if (
+        placeholder &&
+        placeholder.isConnected
+    ) {
+
+        targetRect =
+            placeholder.getBoundingClientRect();
+
+    }
+
+
+    const currentRect =
+        row.getBoundingClientRect();
+
+
+    /*
+        El placeholder manda sobre la posición final.
+        Se coloca el row exactamente donde estaba el gap.
+    */
+
+    if (
+        placeholder &&
+        placeholder.isConnected
+    ) {
+
+        placeholder.replaceWith(
+            row
+        );
+
+    }
+
+
+    const orderedRows =
+        getItemRows();
+
+
+    items =
+        orderedRows.map(
+            function(element) {
+
+                return element._item;
+
+            }
+        );
+
+
+    saveToStorage();
+
+    generateOutput();
+
+
+    if (targetRect) {
+
+        row.style.position =
+            "fixed";
+
+        row.style.left =
+            currentRect.left +
+            "px";
+
+        row.style.top =
+            currentRect.top +
+            "px";
+
+        row.style.width =
+            currentRect.width +
+            "px";
+
+        row.style.height =
+            currentRect.height +
+            "px";
+
+        row.style.margin =
+            "0";
+
+        row.style.zIndex =
+            "1001";
+
+        row.style.pointerEvents =
+            "none";
+
+        row.style.transition =
+            "none";
+
+
+        row.getBoundingClientRect();
+
+
+        row.style.transition =
+            "left .22s cubic-bezier(.2,.8,.2,1), " +
+            "top .22s cubic-bezier(.2,.8,.2,1), " +
+            "transform .22s cubic-bezier(.2,.8,.2,1)";
+
+
+        row.style.left =
+            targetRect.left +
+            "px";
+
+        row.style.top =
+            targetRect.top +
+            "px";
+
+        row.style.transform =
+            "scale(1)";
+
+    }
+
+
+    window.setTimeout(
+        function() {
+
+            cleanupDragStyles(
+                row
+            );
+
+            row.classList.remove(
+                "dragging"
+            );
+
+            renderItems();
+
+            saveToStorage();
+
+            generateOutput();
+
+        },
+        230
+    );
+
+}
+
+
+function cancelDrag() {
+
+    if (!dragState) {
+        return;
+    }
+
+
+    const state =
+        dragState;
+
+    dragState =
+        null;
+
+
+    document.body.classList.remove(
+        "drag-active"
+    );
+
+
+    const row =
+        state.row;
+
+    const placeholder =
+        state.placeholder;
+
+    const list =
+        $("itemsList");
+
+
+    if (
+        placeholder &&
+        placeholder.isConnected
+    ) {
+
+        placeholder.remove();
+
+    }
+
+
+    if (
+        state.originalNextSibling &&
+        state.originalNextSibling.parentNode ===
+            list
+    ) {
+
+        list.insertBefore(
+            row,
+            state.originalNextSibling
+        );
+
+    } else {
+
+        list.appendChild(
+            row
+        );
+
+    }
+
+
+    cleanupDragStyles(
+        row
+    );
+
+
+    row.classList.remove(
+        "dragging"
+    );
+
+
+    renderItems();
+
+}
+
+
+function setupDrag(row) {
+
+    let pointerDown =
+        false;
+
+    let startX =
+        0;
+
+    let startY =
+        0;
+
+
+    row.addEventListener(
+        "pointerdown",
+        function(event) {
+
+            if (
+                event.button !== undefined &&
+                event.button !== 0
+            ) {
+
+                return;
+
+            }
+
+
+            if (
+                event.target.closest(
+                    "button"
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            if (dragState) {
+                return;
+            }
+
+
+            pointerDown =
+                true;
+
+
+            startX =
+                event.clientX;
+
+            startY =
+                event.clientY;
+
+
+            row.setPointerCapture?.(
+                event.pointerId
+            );
+
+
+            function pointerMove(
+                moveEvent
+            ) {
+
+                if (!pointerDown) {
+                    return;
+                }
+
+
+                const dx =
+                    moveEvent.clientX -
+                    startX;
+
+                const dy =
+                    moveEvent.clientY -
+                    startY;
+
+
+                if (
+                    !dragState &&
+                    Math.hypot(
+                        dx,
+                        dy
+                    ) < 5
+                ) {
+
+                    return;
+
+                }
+
+
+                if (!dragState) {
+
+                    const list =
+                        $("itemsList");
+
+
+                    const rect =
+                        row.getBoundingClientRect();
+
+
+                    const placeholder =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    placeholder.className =
+                        "item drag-placeholder";
+
+
+                    placeholder.style.height =
+                        rect.height +
+                        "px";
+
+
+                    const originalNextSibling =
+                        row.nextElementSibling;
+
+
+                    list.insertBefore(
+                        placeholder,
+                        row
+                    );
+
+
+                    row.style.width =
+                        rect.width +
+                        "px";
+
+                    row.style.height =
+                        rect.height +
+                        "px";
+
+                    row.style.position =
+                        "fixed";
+
+                    row.style.left =
+                        rect.left +
+                        "px";
+
+                    row.style.top =
+                        rect.top +
+                        "px";
+
+                    row.style.margin =
+                        "0";
+
+                    row.style.zIndex =
+                        "1001";
+
+                    row.style.pointerEvents =
+                        "none";
+
+                    row.style.transition =
+                        "none";
+
+
+                    row.classList.add(
+                        "dragging"
+                    );
+
+
+                    document.body.classList.add(
+                        "drag-active"
+                    );
+
+
+                    dragState = {
+
+                        row:
+                            row,
+
+                        placeholder:
+                            placeholder,
+
+                        originalNextSibling:
+                            originalNextSibling,
+
+                        pointerId:
+                            moveEvent.pointerId
+
+                    };
+
+
+                    document.body.appendChild(
+                        row
+                    );
+
+                }
+
+
+                const rowRect =
+                    row.getBoundingClientRect();
+
+
+                if (
+                    dragState.offsetX ===
+                    undefined
+                ) {
+
+                    dragState.offsetX =
+                        startX -
+                        rowRect.left;
+
+                    dragState.offsetY =
+                        startY -
+                        rowRect.top;
+
+                }
+
+
+                row.style.left =
+                    (
+                        moveEvent.clientX -
+                        dragState.offsetX
+                    ) +
+                    "px";
+
+
+                row.style.top =
+                    (
+                        moveEvent.clientY -
+                        dragState.offsetY
+                    ) +
+                    "px";
+
+
+                updatePlaceholder(
+                    moveEvent.clientY
+                );
+
+            }
+
+
+            function pointerUp() {
+
+                pointerDown =
+                    false;
+
+
+                window.removeEventListener(
+                    "pointermove",
+                    pointerMove
+                );
+
+
+                window.removeEventListener(
+                    "pointerup",
+                    pointerUp
+                );
+
+
+                window.removeEventListener(
+                    "pointercancel",
+                    pointerCancel
+                );
+
+
+                if (dragState) {
+
+                    finishDrag();
+
+                }
+
+            }
+
+
+            function pointerCancel() {
+
+                pointerDown =
+                    false;
+
+
+                window.removeEventListener(
+                    "pointermove",
+                    pointerMove
+                );
+
+
+                window.removeEventListener(
+                    "pointerup",
+                    pointerUp
+                );
+
+
+                window.removeEventListener(
+                    "pointercancel",
+                    pointerCancel
+                );
+
+
+                if (dragState) {
+
+                    cancelDrag();
+
+                }
+
+            }
+
+
+            window.addEventListener(
+                "pointermove",
+                pointerMove
+            );
+
+
+            window.addEventListener(
+                "pointerup",
+                pointerUp
+            );
+
+
+            window.addEventListener(
+                "pointercancel",
+                pointerCancel
+            );
+
+        }
+    );
+
+}
+
+
+window.addEventListener(
+    "blur",
+    function() {
+
+        if (dragState) {
+
+            cancelDrag();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   IMPORTAR HTML
+========================================================= */
+
+function findTinyPhotosList(
+    documentObject
+) {
+
+    const section =
+        documentObject.querySelector(
+            "section.tiny-photos"
+        );
+
+
+    if (section) {
+
+        const directUl =
+            Array.from(
+                section.children
+            )
+            .find(function(element) {
+
+                return (
+                    element.tagName
+                        .toLowerCase() ===
+                    "ul"
+                );
+
+            });
+
+
+        if (directUl) {
+            return directUl;
+        }
+
+
+        return section.querySelector(
+            "ul"
+        );
+
+    }
+
+
+    return documentObject.querySelector(
+        "ul"
+    );
+
+}
+
+
+function getDirectLiChildren(
+    list
+) {
+
+    if (!list) {
+        return [];
+    }
+
+
+    return Array.from(
+        list.children
+    )
+    .filter(function(element) {
+
+        return (
+            element.tagName
+                .toLowerCase() ===
+            "li"
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   IMPORTAR POLAROID
+========================================================= */
+
+function importPolaroid(li) {
+
+    const paragraph =
+        Array.from(
+            li.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "p"
+            );
+
+        });
+
+
+    const list =
+        Array.from(
+            li.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "ul"
+            );
+
+        });
+
+
+    const img =
+        paragraph
+            ? paragraph.querySelector(
+                "img"
+            )
+            : null;
+
+
+    if (!img || !list) {
+        return null;
+    }
+
+
+    const caption =
+        Array.from(
+            list.children
+        )
+        .filter(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "li"
+            );
+
+        })
+        .map(function(element) {
+
+            return element.textContent
+                .trim();
+
+        })
+        .join("\n");
+
+
+    return {
+
+        type:
+            "polaroid",
+
+        image:
+            img.getAttribute(
+                "src"
+            ) || "",
+
+        alt:
+            img.getAttribute(
+                "alt"
+            ) || "",
+
+        caption:
+            caption
+
+    };
+
+}
+
+
+/* =========================================================
+   IMPORTAR STICKY PNG
+========================================================= */
+
+function importStickyPng(li) {
+
+    const img =
+        Array.from(
+            li.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                    "img" &&
+                element.classList.contains(
+                    "sticky-drawing"
+                )
+            );
+
+        });
+
+
+    if (!img) {
+        return null;
+    }
+
+
+    return {
+
+        type:
+            "sticky-png",
+
+        image:
+            img.getAttribute(
+                "src"
+            ) || "",
+
+        alt:
+            img.getAttribute(
+                "alt"
+            ) || ""
+
+    };
+
+}
+
+
+/* =========================================================
+   IMPORTAR TICKET
+========================================================= */
+
+function importTicket(li) {
+
+    const img =
+        Array.from(
+            li.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "img"
+            );
+
+        });
+
+
+    if (!img) {
+        return null;
+    }
+
+
+    return {
+
+        type:
+            "ticket",
+
+        image:
+            img.getAttribute(
+                "src"
+            ) || "",
+
+        alt:
+            img.getAttribute(
+                "alt"
+            ) || ""
+
+    };
+
+}
+
+
+/* =========================================================
+   IMPORTAR PNG FRAME
+========================================================= */
+
+function importPngFrame(li) {
+
+    const img =
+        Array.from(
+            li.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "img"
+            );
+
+        });
+
+
+    if (!img) {
+        return null;
+    }
+
+
+    let scale =
+        "1.4";
+
+
+    const style =
+        li.getAttribute(
+            "style"
+        ) || "";
+
+
+    const match =
+        style.match(
+            /--png-scale\s*:\s*([^;]+)/
+        );
+
+
+    if (match) {
+
+        scale =
+            match[1].trim();
+
+    }
+
+
+    return {
+
+        type:
+            "png-frame",
+
+        image:
+            img.getAttribute(
+                "src"
+            ) || "",
+
+        alt:
+            img.getAttribute(
+                "alt"
+            ) || "",
+
+        scale:
+            scale
+
+    };
+
+}
+
+
+/* =========================================================
+   IMPORTAR STICKY FECHA
+========================================================= */
+
+function importStickyFecha(li) {
+
+    const paragraph =
+        Array.from(
+            li.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "p"
+            );
+
+        });
+
+
+    const list =
+        Array.from(
+            li.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "ul"
+            );
+
+        });
+
+
+    if (!paragraph || !list) {
+        return null;
+    }
+
+
+    const dateLi =
+        Array.from(
+            list.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "li"
+            );
+
+        });
+
+
+    return {
+
+        type:
+            "sticky-fecha",
+
+        text:
+            paragraph.textContent
+                .trim(),
+
+        date:
+            dateLi
+                ? dateLi.textContent.trim()
+                : ""
+
+    };
+
+}
+
+
+/* =========================================================
+   IMPORTAR DIARY
+========================================================= */
+
+function importDiary(li) {
+
+    const children =
+        Array.from(
+            li.children
+        );
+
+
+    const hasDiaryImage =
+        children.some(
+            function(element) {
+
+                return (
+                    element.tagName
+                        .toLowerCase() ===
+                    "img" &&
+                    element.getAttribute(
+                        "alt"
+                    ) ===
+                    "Diario"
+                );
+
+            }
+        );
+
+
+    const hasHr =
+        children.some(
+            function(element) {
+
+                return (
+                    element.tagName
+                        .toLowerCase() ===
+                    "hr"
+                );
+
+            }
+        );
+
+
+    if (
+        !hasHr &&
+        !hasDiaryImage
+    ) {
+
+        return null;
+
+    }
+
+
+    const paragraphs = [];
+
+
+    let currentParagraph = [];
+
+
+    children.forEach(
+        function(element) {
+
+            const tag =
+                element.tagName.toLowerCase();
+
+
+            if (tag === "img") {
+
+                return;
+
+            }
+
+
+            if (tag === "p") {
+
+                const html =
+                    element.innerHTML
+                        .replace(
+                            /<br\s*\/?>/gi,
+                            "\n"
+                        );
+
+
+                const temp =
+                    document.createElement(
+                        "div"
+                    );
+
+                temp.innerHTML =
+                    html;
+
+
+                const text =
+                    temp.textContent
+                        .trim();
+
+
+                if (text) {
+
+                    currentParagraph.push(
+                        text
+                    );
+
+                }
+
+
+                return;
+
+            }
+
+
+            if (tag === "hr") {
+
+                const paragraph =
+                    currentParagraph
+                        .join("\n")
+                        .trim();
+
+
+                if (paragraph) {
+
+                    paragraphs.push(
+                        paragraph
+                    );
+
+                }
+
+
+                currentParagraph = [];
+
+            }
+
+        }
+    );
+
+
+    const finalParagraph =
+        currentParagraph
+            .join("\n")
+            .trim();
+
+
+    if (finalParagraph) {
+
+        paragraphs.push(
+            finalParagraph
+        );
+
+    }
+
+
+    if (!paragraphs.length) {
+        return null;
+    }
+
+
+    return {
+
+        type:
+            "diary",
+
+        text:
+            paragraphs.join(
+                "\n---\n"
+            )
+
+    };
+
+}
+
+
+/* =========================================================
+   IMPORTAR FILM STRIP
+========================================================= */
+
+function importFilmStrip(li) {
+
+    if (
+        !li.classList.contains(
+            "film-strip"
+        )
+    ) {
+
+        return null;
+
+    }
+
+
+    const frames =
+        Array.from(
+            li.children
+        )
+        .filter(function(element) {
+
+            return element.classList.contains(
+                "film-frame"
+            );
+
+        });
+
+
+    if (!frames.length) {
+        return null;
+    }
+
+
+    const images =
+        frames.map(
+            function(frame) {
+
+                return frame.querySelector(
+                    "img"
+                );
+
+            }
+        );
+
+
+    return {
+
+        type:
+            "film-strip",
+
+        name:
+            "",
+
+        image1:
+            images[0]
+                ? images[0].getAttribute(
+                    "src"
+                ) || ""
+                : "",
+
+        alt1:
+            images[0]
+                ? images[0].getAttribute(
+                    "alt"
+                ) || ""
+                : "",
+
+        image2:
+            images[1]
+                ? images[1].getAttribute(
+                    "src"
+                ) || ""
+                : "",
+
+        alt2:
+            images[1]
+                ? images[1].getAttribute(
+                    "alt"
+                ) || ""
+                : "",
+
+        image3:
+            images[2]
+                ? images[2].getAttribute(
+                    "src"
+                ) || ""
+                : "",
+
+        alt3:
+            images[2]
+                ? images[2].getAttribute(
+                    "alt"
+                ) || ""
+                : ""
+
+    };
+
+}
+
+
+/* =========================================================
+   IMPORTAR STICKY
+========================================================= */
+
+function importSticky(li) {
+
+    const paragraph =
+        Array.from(
+            li.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "p"
+            );
+
+        });
+
+
+    if (!paragraph) {
+        return null;
+    }
+
+
+    return {
+
+        type:
+            "sticky",
+
+        text:
+            paragraph.textContent
+                .trim()
+
+    };
+
+}
+
+
+/* =========================================================
+   RECONOCER CADA LI
+========================================================= */
+
+function importLi(li) {
+
+
+    /* FILM STRIP */
+
+    if (
+        li.classList.contains(
+            "film-strip"
+        )
+    ) {
+
+        return importFilmStrip(
+            li
+        );
+
+    }
+
+
+    /* TICKET */
+
+    if (
+        li.classList.contains(
+            "ticket-frame"
+        )
+    ) {
+
+        return importTicket(
+            li
+        );
+
+    }
+
+
+    /* PNG FRAME */
+
+    if (
+        li.classList.contains(
+            "png-frame"
+        )
+    ) {
+
+        return importPngFrame(
+            li
+        );
+
+    }
+
+
+    /* STICKY PNG */
+
+    const hasStickyDrawing =
+        Array.from(
+            li.children
+        )
+        .some(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                    "img" &&
+                element.classList.contains(
+                    "sticky-drawing"
+                )
+            );
+
+        });
+
+
+    if (hasStickyDrawing) {
+
+        return importStickyPng(
+            li
+        );
+
+    }
+
+
+    /*
+        POLAROID
+
+        Debe tener:
+
+        <p>
+            <img>
+        </p>
+
+        y un <ul> directo.
+
+        Se comprueba antes que
+        Sticky Note + Fecha.
+    */
+
+    const directParagraph =
+        Array.from(
+            li.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "p"
+            );
+
+        });
+
+
+    const directUl =
+        Array.from(
+            li.children
+        )
+        .find(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "ul"
+            );
+
+        });
+
+
+    const polaroidImage =
+        directParagraph
+            ? directParagraph.querySelector(
+                "img"
+            )
+            : null;
+
+
+    if (
+        polaroidImage &&
+        directUl
+    ) {
+
+        return importPolaroid(
+            li
+        );
+
+    }
+
+
+    /* DIARY */
+
+    const hasDirectHr =
+        Array.from(
+            li.children
+        )
+        .some(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                "hr"
+            );
+
+        });
+
+
+    const hasDiaryImage =
+        Array.from(
+            li.children
+        )
+        .some(function(element) {
+
+            return (
+                element.tagName
+                    .toLowerCase() ===
+                    "img" &&
+                element.getAttribute(
+                    "alt"
+                ) ===
+                "Diario"
+            );
+
+        });
+
+
+    if (
+        hasDirectHr ||
+        hasDiaryImage
+    ) {
+
+        const diary =
+            importDiary(li);
+
+        if (diary) {
+            return diary;
+        }
+
+    }
+
+
+    /* STICKY FECHA */
+
+    if (
+        directParagraph &&
+        directUl
+    ) {
+
+        return importStickyFecha(
+            li
+        );
+
+    }
+
+
+    /* STICKY */
+
+    if (directParagraph) {
+
+        return importSticky(
+            li
+        );
+
+    }
+
+
+    /* DIARY ANTIGUO */
+
+    if (
+        li.querySelector(
+            "hr"
+        )
+    ) {
+
+        return importDiary(
+            li
+        );
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =========================================================
+   IMPORTAR HTML COMPLETO
+========================================================= */
+
+function importHtml() {
+
+    const source =
+        $("importArea")
+            .value
+            .trim();
+
+
+    if (!source) {
+
+        setStatus(
+            "importStatus",
+            "Pega primero el HTML que quieres importar.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const parser =
+        new DOMParser();
+
+
+    const documentObject =
+        parser.parseFromString(
+            source,
+            "text/html"
+        );
+
+
+    const list =
+        findTinyPhotosList(
+            documentObject
+        );
+
+
+    if (!list) {
+
+        setStatus(
+            "importStatus",
+            "No se encontró ningún <ul> válido.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const liElements =
+        getDirectLiChildren(
+            list
+        );
+
+
+    if (!liElements.length) {
+
+        setStatus(
+            "importStatus",
+            "El <ul> no contiene elementos <li>.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const imported = [];
+
+    let ignored = 0;
+
+
+    liElements.forEach(
+        function(li) {
+
+            const item =
+                importLi(li);
+
+
+            if (item) {
+
+                imported.push(
+                    item
+                );
+
+            } else {
+
+                ignored++;
+
+            }
+
+        }
+    );
+
+
+    if (!imported.length) {
+
+        setStatus(
+            "importStatus",
+            "No se pudo reconocer ningún elemento.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    items =
+        imported;
+
+
+    editingIndex =
+        -1;
+
+
+    saveToStorage();
+
+    renderItems();
+
+    generateOutput();
+
+    clearForm();
+
+
+    let message =
+        imported.length +
+        " elemento" +
+        (
+            imported.length === 1
+                ? ""
+                : "s"
+        ) +
+        " importado" +
+        (
+            imported.length === 1
+                ? ""
+                : "s"
+        ) +
+        " correctamente.";
+
+
+    if (ignored) {
+
+        message +=
+            " " +
+            ignored +
+            " elemento" +
+            (
+                ignored === 1
+                    ? ""
+                    : "s"
+            ) +
+            " no reconocido" +
+            (
+                ignored === 1
+                    ? ""
+                    : "s"
+            ) +
+            ".";
+
+    }
+
+
+    setStatus(
+        "importStatus",
+        message,
+        "success"
+    );
+
+}
+
+
+/* =========================================================
+   GUARDAR FORMULARIO
+========================================================= */
+
+function saveForm() {
+
+    const data =
+        getFormData();
+
+
+    if (!data) {
+        return;
+    }
+
+
+    if (
+        editingIndex !== -1
+    ) {
+
+        items[editingIndex] =
+            data;
+
+
+        saveToStorage();
+
+        renderItems();
+
+        generateOutput();
+
+
+        setStatus(
+            "formStatus",
+            "Cambios guardados correctamente.",
+            "success"
+        );
+
+
+        clearForm();
+
+        return;
+
+    }
+
+
+    items.push(
+        data
+    );
+
+
+    saveToStorage();
+
+    renderItems();
+
+    generateOutput();
+
+
+    setStatus(
+        "formStatus",
+        "Elemento añadido correctamente.",
+        "success"
+    );
+
+
+    clearForm();
+
+}
+
+
+/* =========================================================
+   COPIAR
+========================================================= */
+
+async function copyOutput() {
+
+    const output =
+        $("output").value;
+
+
+    if (!output) {
+        return;
+    }
+
+
+    try {
+
+        await navigator.clipboard.writeText(
+            output
+        );
+
+
+        setStatus(
+            "outputStatus",
+            "HTML copiado al portapapeles.",
+            "success"
+        );
+
+    } catch (error) {
+
+        $("output").focus();
+
+        $("output").select();
+
+
+        try {
+
+            document.execCommand(
+                "copy"
+            );
+
+
+            setStatus(
+                "outputStatus",
+                "HTML copiado al portapapeles.",
+                "success"
+            );
+
+        } catch (fallbackError) {
+
+            setStatus(
+                "outputStatus",
+                "No se pudo copiar automáticamente.",
+                "error"
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   DESCARGAR
+========================================================= */
+
+function downloadOutput() {
+
+    const output =
+        $("output").value;
+
+
+    if (!output) {
+        return;
+    }
+
+
+    const blob =
+        new Blob(
+            [output],
+            {
+                type:
+                    "text/html;charset=utf-8"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+    link.href =
+        url;
+
+    link.download =
+        "tiny-photos.html";
+
+
+    document.body.appendChild(
+        link
+    );
+
+
+    link.click();
+
+    link.remove();
+
+
+    window.setTimeout(
+        function() {
+
+            URL.revokeObjectURL(
+                url
+            );
+
+        },
+        1000
+    );
+
+
+    setStatus(
+        "outputStatus",
+        "HTML descargado.",
+        "success"
+    );
+
+}
+
+
+/* =========================================================
+   BORRAR TODO
+========================================================= */
+
+function resetAll() {
+
+    const confirmed =
+        window.confirm(
+            "¿Seguro que quieres borrar todos los elementos?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    items = [];
+
+    editingIndex =
+        -1;
+
+
+    saveToStorage();
+
+    renderItems();
+
+    generateOutput();
+
+    clearForm();
+
+
+    $("importArea").value =
+        "";
+
+
+    setStatus(
+        "outputStatus",
+        "Todos los elementos han sido borrados.",
+        "success"
+    );
+
+}
+
+
+/* =========================================================
+   EVENTOS
+========================================================= */
+
+$("elementType")
+    .addEventListener(
+        "change",
+        function() {
+
+            updateTypeFields();
+
+            setStatus(
+                "formStatus",
+                ""
+            );
+
+        }
+    );
+
+
+$("saveButton")
+    .addEventListener(
+        "click",
+        saveForm
+    );
+
+
+$("cancelButton")
+    .addEventListener(
+        "click",
+        function() {
+
+            clearForm();
+
+            setStatus(
+                "formStatus",
+                "Edición cancelada."
+            );
+
+        }
+    );
+
+
+$("formatDiaryButton")
+    .addEventListener(
+        "click",
+        formatDiaryText
+    );
+
+
+$("copyButton")
+    .addEventListener(
+        "click",
+        copyOutput
+    );
+
+
+$("downloadButton")
+    .addEventListener(
+        "click",
+        downloadOutput
+    );
+
+
+$("resetButton")
+    .addEventListener(
+        "click",
+        resetAll
+    );
+
+
+$("importButton")
+    .addEventListener(
+        "click",
+        importHtml
+    );
+
+
+$("clearImportButton")
+    .addEventListener(
+        "click",
+        function() {
+
+            $("importArea").value =
+                "";
+
+            setStatus(
+                "importStatus",
+                ""
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   INICIO
+========================================================= */
+
+loadFromStorage();
+
+renderItems();
+
+generateOutput();
+
+updateTypeFields();
+
+</script>
+
+</body>
+</html>
