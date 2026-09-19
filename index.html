@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -49,8 +48,18 @@
         font-size: 20px;
     }
 
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 14px;
+    }
+
     .field {
         margin-bottom: 14px;
+    }
+
+    .field.full {
+        grid-column: 1 / -1;
     }
 
     label {
@@ -223,7 +232,7 @@
         box-shadow: inset 0 0 0 2px rgba(0,0,0,.08);
     }
 
-    .drag-placeholder {
+    .item.drag-placeholder {
         box-sizing: border-box;
         border: 2px dashed #c7c7c7;
         border-radius: 9px;
@@ -323,9 +332,23 @@
         margin: 18px 0;
     }
 
+    .small-note {
+        font-size: 12px;
+        color: #777;
+        margin-top: 5px;
+    }
+
     @media (max-width: 760px) {
         body {
             padding: 14px;
+        }
+
+        .grid {
+            grid-template-columns: 1fr;
+        }
+
+        .field.full {
+            grid-column: auto;
         }
 
         .item {
@@ -351,9 +374,8 @@
     <h1>PhotoBox Generator</h1>
 
     <p class="intro">
-        Crea, ordena, edita, duplica, importa y exporta tus elementos
-        para generar el bloque
-        <code>&lt;section class="tiny-photos"&gt;</code>.
+        Crea, ordena, edita, duplica, importa y exporta tus elementos para generar
+        el bloque <code>&lt;section class="tiny-photos"&gt;</code>.
     </p>
 
     <!-- FORMULARIO -->
@@ -381,10 +403,7 @@
         <div id="fields-polaroid">
 
             <div class="field">
-                <label for="polaroidImage">
-                    URL de la imagen
-                </label>
-
+                <label for="polaroidImage">URL de la imagen</label>
                 <input
                     id="polaroidImage"
                     type="text"
@@ -393,10 +412,7 @@
             </div>
 
             <div class="field">
-                <label for="polaroidAlt">
-                    ALT de la imagen
-                </label>
-
+                <label for="polaroidAlt">ALT de la imagen</label>
                 <input
                     id="polaroidAlt"
                     type="text"
@@ -405,9 +421,7 @@
             </div>
 
             <div class="field">
-                <label for="polaroidCaption">
-                    Texto de la Polaroid
-                </label>
+                <label for="polaroidCaption">Texto de la Polaroid</label>
 
                 <textarea
                     id="polaroidCaption"
@@ -416,8 +430,8 @@
 
                 <div class="help">
                     Cada línea se convertirá en una línea de texto.
-                    La primera letra de cada palabra se generará
-                    en mayúscula en el HTML final.
+                    La primera letra de cada palabra se generará en mayúscula
+                    en el HTML final.
                 </div>
             </div>
 
@@ -619,15 +633,17 @@
 
                 <textarea
                     id="diaryText"
-                    placeholder="Primer párrafo&#10;---&#10;Segundo párrafo"
+                    placeholder="My trip starts in Bariloche.&#10;...&#10;I will be driving for one month..."
                 ></textarea>
 
                 <div class="help">
-                    Cada bloque de texto se convierte en un
+                    Cada línea normal se convierte en un
                     <code>&lt;p&gt;</code>.
-                    Una línea que contenga solamente
-                    <strong>---</strong> se convierte en
+                    Escribe exactamente
+                    <strong>...</strong>
+                    en una línea independiente para insertar un
                     <code>&lt;hr&gt;</code>.
+                    El texto del Diary no se capitaliza ni se modifica.
                 </div>
 
             </div>
@@ -780,7 +796,7 @@
     </section>
 
 
-    <!-- ELEMENTOS ACTIVOS -->
+    <!-- ELEMENTOS -->
     <section class="panel">
 
         <h2>Elementos activos</h2>
@@ -800,7 +816,7 @@
     </section>
 
 
-    <!-- HTML GENERADO -->
+    <!-- OUTPUT -->
     <section class="panel">
 
         <h2>HTML generado</h2>
@@ -838,15 +854,12 @@
 
         </div>
 
-        <div
-            id="outputStatus"
-            class="status"
-        ></div>
+        <div id="outputStatus" class="status"></div>
 
     </section>
 
 
-    <!-- IMPORTAR HTML -->
+    <!-- IMPORT -->
     <section class="panel">
 
         <h2>Importar HTML existente</h2>
@@ -887,10 +900,7 @@
 
         </div>
 
-        <div
-            id="importStatus"
-            class="status"
-        ></div>
+        <div id="importStatus" class="status"></div>
 
     </section>
 
@@ -901,39 +911,27 @@
 "use strict";
 
 
-/* =========================================================
-   CONFIGURACIÓN
-========================================================= */
-
 const STORAGE_KEY =
     "photobox-generator-items-v4";
 
 
 const TYPE_NAMES = {
 
-    "polaroid":
-        "Polaroid",
+    "polaroid": "Polaroid",
 
-    "sticky":
-        "Sticky Note",
+    "sticky": "Sticky Note",
 
-    "sticky-fecha":
-        "Sticky Note + Fecha",
+    "sticky-fecha": "Sticky Note + Fecha",
 
-    "sticky-png":
-        "Sticky PNG",
+    "sticky-png": "Sticky PNG",
 
-    "ticket":
-        "Ticket",
+    "ticket": "Ticket",
 
-    "png-frame":
-        "PNG Frame",
+    "png-frame": "PNG Frame",
 
-    "diary":
-        "Diary Notes",
+    "diary": "Diary Notes",
 
-    "film-strip":
-        "Film Strip"
+    "film-strip": "Film Strip"
 
 };
 
@@ -942,41 +940,73 @@ let items = [];
 
 let editingIndex = -1;
 
-let dragState = null;
-
 
 /* =========================================================
-   UTILIDADES
+   HELPERS
 ========================================================= */
 
 function $(id) {
-
     return document.getElementById(id);
-
 }
 
 
-function escapeHtml(value) {
+/*
+ * Escape para TEXTO HTML.
+ *
+ * IMPORTANTE:
+ * No escapamos comillas simples ni dobles porque estamos
+ * generando texto dentro de <p>, <li>, etc.
+ *
+ * Así:
+ *
+ * Don't
+ *
+ * sigue siendo:
+ *
+ * Don't
+ *
+ * y no:
+ *
+ * Don&#39;t
+ */
+function escapeHtmlText(value) {
 
     return String(value ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+        .replace(/>/g, "&gt;");
 
 }
 
 
-function normalizeLineEndings(value) {
+/*
+ * Escape para ATRIBUTOS HTML.
+ *
+ * Aquí sí escapamos comillas porque estamos dentro de:
+ *
+ * src="..."
+ * alt="..."
+ */
+function escapeHtmlAttribute(value) {
 
     return String(value ?? "")
-        .replace(/\r\n/g, "\n")
-        .replace(/\r/g, "\n");
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
 
 }
 
 
+/*
+ * Capitalización utilizada únicamente por:
+ *
+ * - Polaroid
+ * - Sticky
+ * - Sticky + Fecha
+ *
+ * Diary NO utiliza esta función.
+ */
 function capitalizeWords(value) {
 
     return String(value ?? "")
@@ -1000,6 +1030,163 @@ function capitalizeWords(value) {
 }
 
 
+function normalizeLineEndings(value) {
+
+    return String(value ?? "")
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n");
+
+}
+
+
+/* =========================================================
+   DIARY
+========================================================= */
+
+
+/*
+ * DIARY FINAL:
+ *
+ * Cada línea normal:
+ *
+ * Texto
+ *
+ * se convierte en:
+ *
+ * <p>Texto</p>
+ *
+ *
+ * Una línea que sea EXACTAMENTE:
+ *
+ * ...
+ *
+ * se convierte en:
+ *
+ * <hr>
+ *
+ *
+ * Por tanto:
+ *
+ * Línea 1
+ * ...
+ * Línea 2
+ *
+ * genera:
+ *
+ * <p>Línea 1</p>
+ * <hr>
+ * <p>Línea 2</p>
+ *
+ *
+ * Los tres puntos NUNCA aparecen en el HTML final.
+ */
+function formatDiaryToHtml(text) {
+
+    const lines =
+        normalizeLineEndings(text)
+            .split("\n");
+
+
+    return lines
+
+        .map(function(line) {
+
+            const trimmed =
+                line.trim();
+
+
+            /*
+             * Ignoramos líneas completamente vacías.
+             */
+            if (!trimmed) {
+                return "";
+            }
+
+
+            /*
+             * SEPARADOR DEL DIARY
+             */
+            if (trimmed === "...") {
+                return "<hr>";
+            }
+
+
+            /*
+             * Texto normal.
+             *
+             * NO capitalizamos.
+             *
+             * NO modificamos apóstrofes.
+             *
+             * NO convertimos texto en HTML.
+             */
+            return (
+                "<p>" +
+                escapeHtmlText(trimmed) +
+                "</p>"
+            );
+
+        })
+
+        .filter(Boolean)
+
+        .join("\n");
+
+}
+
+
+/*
+ * El botón simplemente limpia espacios innecesarios
+ * y conserva exactamente "..." como separador.
+ *
+ * No mete HTML dentro del textarea.
+ */
+function formatDiaryText() {
+
+    const textarea =
+        $("diaryText");
+
+
+    if (!textarea) {
+        return;
+    }
+
+
+    const lines =
+        normalizeLineEndings(textarea.value)
+
+            .split("\n")
+
+            .map(function(line) {
+
+                return line.trim();
+
+            })
+
+            .filter(function(line) {
+
+                return line.length > 0;
+
+            });
+
+
+    textarea.value =
+        lines.join("\n");
+
+
+    setStatus(
+        "formStatus",
+        "Diary formateado correctamente.",
+        "success"
+    );
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
 function setStatus(
     id,
     message,
@@ -1009,15 +1196,19 @@ function setStatus(
     const element =
         $(id);
 
+
     if (!element) {
         return;
     }
 
+
     element.textContent =
         message || "";
 
+
     element.className =
         "status";
+
 
     if (type === "success") {
 
@@ -1026,6 +1217,7 @@ function setStatus(
         );
 
     }
+
 
     if (type === "error") {
 
@@ -1039,127 +1231,25 @@ function setStatus(
 
 
 /* =========================================================
-   DIARY NOTES
-========================================================= */
-
-/*
-    IMPORTANTE:
-
-    El usuario escribe:
-
-    Primer párrafo
-    ---
-    Segundo párrafo
-
-    Y el HTML generado será:
-
-    <p>Primer párrafo</p>
-    <hr>
-    <p>Segundo párrafo</p>
-
-    Los tres guiones NO se imprimen.
-*/
-
-
-function splitDiaryBlocks(text) {
-
-    const normalized =
-        normalizeLineEndings(text);
-
-
-    return normalized
-        .split(/^\s*---\s*$/m)
-        .map(function(block) {
-
-            return block.trim();
-
-        })
-        .filter(function(block) {
-
-            return block.length > 0;
-
-        });
-
-}
-
-
-function formatDiaryToHtml(text) {
-
-    const blocks =
-        splitDiaryBlocks(text);
-
-
-    return blocks
-        .map(function(block) {
-
-            const htmlText =
-                escapeHtml(block)
-                    .replace(/\n/g, "<br>");
-
-            return (
-                "<p>" +
-                htmlText +
-                "</p>"
-            );
-
-        })
-        .join(
-            "\n<hr>\n"
-        );
-
-}
-
-
-function formatDiaryText() {
-
-    const textarea =
-        $("diaryText");
-
-
-    if (!textarea) {
-        return;
-    }
-
-
-    const blocks =
-        splitDiaryBlocks(
-            textarea.value
-        );
-
-
-    /*
-        Normalizamos el contenido del campo
-        manteniendo --- como separador.
-    */
-
-    textarea.value =
-        blocks.join(
-            "\n---\n"
-        );
-
-
-    setStatus(
-        "formStatus",
-        "Diary formateado correctamente.",
-        "success"
-    );
-
-}
-
-
-/* =========================================================
-   CAMPOS DINÁMICOS
+   TYPE FIELDS
 ========================================================= */
 
 const allFieldTypes = [
 
     "polaroid",
+
     "sticky",
+
     "sticky-fecha",
+
     "sticky-png",
+
     "ticket",
+
     "png-frame",
+
     "diary",
+
     "film-strip"
 
 ];
@@ -1195,13 +1285,12 @@ function updateTypeFields() {
 
 
 /* =========================================================
-   LIMPIAR FORMULARIO
+   FORM
 ========================================================= */
 
 function clearForm() {
 
-    editingIndex =
-        -1;
+    editingIndex = -1;
 
 
     $("formTitle").textContent =
@@ -1213,9 +1302,8 @@ function clearForm() {
 
 
     $("cancelButton")
-        .classList.add(
-            "hidden"
-        );
+        .classList
+        .add("hidden");
 
 
     $("elementType").value =
@@ -1304,10 +1392,6 @@ function clearForm() {
 }
 
 
-/* =========================================================
-   OBTENER DATOS DEL FORMULARIO
-========================================================= */
-
 function getFormData() {
 
     const type =
@@ -1318,8 +1402,7 @@ function getFormData() {
 
         return {
 
-            type:
-                "polaroid",
+            type: "polaroid",
 
             image:
                 $("polaroidImage")
@@ -1346,8 +1429,7 @@ function getFormData() {
 
         return {
 
-            type:
-                "sticky",
+            type: "sticky",
 
             text:
                 normalizeLineEndings(
@@ -1364,8 +1446,7 @@ function getFormData() {
 
         return {
 
-            type:
-                "sticky-fecha",
+            type: "sticky-fecha",
 
             text:
                 normalizeLineEndings(
@@ -1387,8 +1468,7 @@ function getFormData() {
 
         return {
 
-            type:
-                "sticky-png",
+            type: "sticky-png",
 
             image:
                 $("stickyPngImage")
@@ -1409,8 +1489,7 @@ function getFormData() {
 
         return {
 
-            type:
-                "ticket",
+            type: "ticket",
 
             image:
                 $("ticketImage")
@@ -1431,8 +1510,7 @@ function getFormData() {
 
         return {
 
-            type:
-                "png-frame",
+            type: "png-frame",
 
             image:
                 $("pngFrameImage")
@@ -1442,8 +1520,8 @@ function getFormData() {
             scale:
                 $("pngFrameScale")
                     .value
-                    .trim() ||
-                "1.4",
+                    .trim()
+                || "1.4",
 
             alt:
                 $("pngFrameAlt")
@@ -1459,8 +1537,7 @@ function getFormData() {
 
         return {
 
-            type:
-                "diary",
+            type: "diary",
 
             text:
                 normalizeLineEndings(
@@ -1477,8 +1554,7 @@ function getFormData() {
 
         return {
 
-            type:
-                "film-strip",
+            type: "film-strip",
 
             name:
                 $("filmStripName")
@@ -1526,7 +1602,7 @@ function getFormData() {
 
 
 /* =========================================================
-   CARGAR DATOS EN FORMULARIO
+   LOAD FORM
 ========================================================= */
 
 function loadFormData(item) {
@@ -1649,7 +1725,7 @@ function loadFormData(item) {
 
 
 /* =========================================================
-   DESCRIPCIÓN DE ELEMENTOS
+   ITEM DESCRIPTION
 ========================================================= */
 
 function getItemDescription(item) {
@@ -1678,14 +1754,20 @@ function getItemDescription(item) {
     if (item.type === "sticky-fecha") {
 
         return item.date
-            ? item.date +
-              (
-                  item.text
-                      ? " — " + item.text
-                      : ""
-              )
-            : item.text ||
-              "(sin contenido)";
+
+            ? (
+                item.date +
+                (
+                    item.text
+                        ? " — " + item.text
+                        : ""
+                )
+            )
+
+            : (
+                item.text ||
+                "(sin contenido)"
+            );
 
     }
 
@@ -1728,11 +1810,8 @@ function getItemDescription(item) {
             normalizeLineEndings(
                 item.text || ""
             )
-            .replace(
-                /\s+/g,
-                " "
-            )
-            .trim();
+                .replace(/\s+/g, " ")
+                .trim();
 
 
         return (
@@ -1759,13 +1838,15 @@ function getItemDescription(item) {
 
 
 /* =========================================================
-   GENERAR HTML DE CADA ELEMENTO
+   ELEMENT TO HTML
 ========================================================= */
 
 function elementToHtml(item) {
 
 
-    /* POLAROID */
+    /* -------------------------
+       POLAROID
+    ------------------------- */
 
     if (item.type === "polaroid") {
 
@@ -1773,40 +1854,49 @@ function elementToHtml(item) {
             normalizeLineEndings(
                 item.caption || ""
             )
+
             .split("\n")
+
             .map(function(line) {
 
                 return line.trim();
 
             })
+
             .filter(function(line) {
 
                 return line.length > 0;
 
             })
+
             .map(function(line) {
 
                 return (
                     "<li>" +
-                    escapeHtml(
+                    escapeHtmlText(
                         capitalizeWords(line)
                     ) +
                     "</li>"
                 );
 
             })
+
             .join("\n");
 
 
-        return `<li>
-<p><img src="${escapeHtml(item.image || "")}" alt="${escapeHtml(item.alt || "")}"></p>
+        return (
+`<li>
+<p><img src="${escapeHtmlAttribute(item.image || "")}" alt="${escapeHtmlAttribute(item.alt || "")}"></p>
 <ul>${captionLines ? "\n" + captionLines + "\n" : ""}</ul>
-</li>`;
+</li>`
+        );
 
     }
 
 
-    /* STICKY */
+    /* -------------------------
+       STICKY
+    ------------------------- */
 
     if (item.type === "sticky") {
 
@@ -1816,14 +1906,18 @@ function elementToHtml(item) {
             );
 
 
-        return `<li>
-<p>${escapeHtml(text)}</p>
-</li>`;
+        return (
+`<li>
+<p>${escapeHtmlText(text)}</p>
+</li>`
+        );
 
     }
 
 
-    /* STICKY FECHA */
+    /* -------------------------
+       STICKY FECHA
+    ------------------------- */
 
     if (item.type === "sticky-fecha") {
 
@@ -1833,67 +1927,65 @@ function elementToHtml(item) {
             );
 
 
-        return `<li>
-<p>${escapeHtml(text)}</p>
-<ul><li>${escapeHtml(item.date || "")}</li></ul>
-</li>`;
+        return (
+`<li>
+<p>${escapeHtmlText(text)}</p>
+<ul><li>${escapeHtmlText(item.date || "")}</li></ul>
+</li>`
+        );
 
     }
 
 
-    /* STICKY PNG */
+    /* -------------------------
+       STICKY PNG
+    ------------------------- */
 
     if (item.type === "sticky-png") {
 
-        return `<li>
-<img src="${escapeHtml(item.image || "")}" class="sticky-drawing" alt="${escapeHtml(item.alt || "")}">
+        return (
+`<li>
+<img src="${escapeHtmlAttribute(item.image || "")}" class="sticky-drawing" alt="${escapeHtmlAttribute(item.alt || "")}">
 <p></p>
-</li>`;
+</li>`
+        );
 
     }
 
 
-    /* TICKET */
+    /* -------------------------
+       TICKET
+    ------------------------- */
 
     if (item.type === "ticket") {
 
-        return `<li class="ticket-frame">
-<img src="${escapeHtml(item.image || "")}" alt="${escapeHtml(item.alt || "")}">
-</li>`;
+        return (
+`<li class="ticket-frame">
+<img src="${escapeHtmlAttribute(item.image || "")}" alt="${escapeHtmlAttribute(item.alt || "")}">
+</li>`
+        );
 
     }
 
 
-    /* PNG FRAME */
+    /* -------------------------
+       PNG FRAME
+    ------------------------- */
 
     if (item.type === "png-frame") {
 
-        return `<li class="png-frame" style="--png-scale: ${escapeHtml(item.scale || "1.4")};">
-<img src="${escapeHtml(item.image || "")}" alt="${escapeHtml(item.alt || "")}">
-</li>`;
+        return (
+`<li class="png-frame" style="--png-scale: ${escapeHtmlAttribute(item.scale || "1.4")};">
+<img src="${escapeHtmlAttribute(item.image || "")}" alt="${escapeHtmlAttribute(item.alt || "")}">
+</li>`
+        );
 
     }
 
 
-    /* =====================================================
-       DIARY NOTES
-
-       Ejemplo de entrada:
-
-       Texto 1
-       ---
-       Texto 2
-       ---
-       Texto 3
-
-       Resultado:
-
-       <p>Texto 1</p>
-       <hr>
-       <p>Texto 2</p>
-       <hr>
-       <p>Texto 3</p>
-    ===================================================== */
+    /* -------------------------
+       DIARY
+    ------------------------- */
 
     if (item.type === "diary") {
 
@@ -1903,29 +1995,35 @@ function elementToHtml(item) {
             );
 
 
-        return `<li>
+        return (
+`<li>
 <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Diario">
 ${diaryContent}
-</li>`;
+</li>`
+        );
 
     }
 
 
-    /* FILM STRIP */
+    /* -------------------------
+       FILM STRIP
+    ------------------------- */
 
     if (item.type === "film-strip") {
 
-        return `<li class="film-strip">
+        return (
+`<li class="film-strip">
   <div class="film-frame">
-    <img src="${escapeHtml(item.image1 || "")}" alt="${escapeHtml(item.alt1 || "")}">
+    <img src="${escapeHtmlAttribute(item.image1 || "")}" alt="${escapeHtmlAttribute(item.alt1 || "")}">
   </div>
   <div class="film-frame">
-    <img src="${escapeHtml(item.image2 || "")}" alt="${escapeHtml(item.alt2 || "")}">
+    <img src="${escapeHtmlAttribute(item.image2 || "")}" alt="${escapeHtmlAttribute(item.alt2 || "")}">
   </div>
   <div class="film-frame">
-    <img src="${escapeHtml(item.image3 || "")}" alt="${escapeHtml(item.alt3 || "")}">
+    <img src="${escapeHtmlAttribute(item.image3 || "")}" alt="${escapeHtmlAttribute(item.alt3 || "")}">
   </div>
-</li>`;
+</li>`
+        );
 
     }
 
@@ -1936,21 +2034,22 @@ ${diaryContent}
 
 
 /* =========================================================
-   GENERAR OUTPUT
+   GENERATE OUTPUT
 ========================================================= */
 
 function generateOutput() {
 
     const htmlItems =
         items
+
             .map(function(item) {
 
-                return elementToHtml(
-                    item
-                );
+                return elementToHtml(item);
 
             })
+
             .filter(Boolean)
+
             .join("\n");
 
 
@@ -2018,8 +2117,7 @@ function loadFromStorage() {
 
         if (Array.isArray(parsed)) {
 
-            items =
-                parsed;
+            items = parsed;
 
         } else {
 
@@ -2042,7 +2140,7 @@ function loadFromStorage() {
 
 
 /* =========================================================
-   RENDER ELEMENTOS
+   RENDER ITEMS
 ========================================================= */
 
 function renderItems() {
@@ -2058,9 +2156,7 @@ function renderItems() {
     if (!items.length) {
 
         const empty =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
 
         empty.className =
@@ -2071,9 +2167,7 @@ function renderItems() {
             "No hay elementos todavía.";
 
 
-        list.appendChild(
-            empty
-        );
+        list.appendChild(empty);
 
 
         return;
@@ -2085,9 +2179,7 @@ function renderItems() {
         function(item) {
 
             const row =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             row.className =
@@ -2103,9 +2195,7 @@ function renderItems() {
 
 
             const info =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             info.className =
@@ -2113,9 +2203,7 @@ function renderItems() {
 
 
             const badge =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             badge.className =
@@ -2128,9 +2216,7 @@ function renderItems() {
 
 
             const title =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             title.className =
@@ -2139,8 +2225,7 @@ function renderItems() {
 
             title.textContent =
                 (
-                    items.indexOf(item) +
-                    1
+                    items.indexOf(item) + 1
                 ) +
                 ". " +
                 (
@@ -2150,9 +2235,7 @@ function renderItems() {
 
 
             const description =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             description.className =
@@ -2160,40 +2243,28 @@ function renderItems() {
 
 
             description.textContent =
-                getItemDescription(
-                    item
-                );
+                getItemDescription(item);
 
 
-            info.appendChild(
-                badge
-            );
+            info.appendChild(badge);
 
-            info.appendChild(
-                title
-            );
+            info.appendChild(title);
 
-            info.appendChild(
-                description
-            );
+            info.appendChild(description);
 
 
             const actions =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             actions.className =
                 "item-actions";
 
 
-            /* SUBIR */
+            /* UP */
 
             const upButton =
-                document.createElement(
-                    "button"
-                );
+                document.createElement("button");
 
 
             upButton.type =
@@ -2247,12 +2318,10 @@ function renderItems() {
             );
 
 
-            /* BAJAR */
+            /* DOWN */
 
             const downButton =
-                document.createElement(
-                    "button"
-                );
+                document.createElement("button");
 
 
             downButton.type =
@@ -2282,8 +2351,7 @@ function renderItems() {
 
                     if (
                         index !== -1 &&
-                        index <
-                            items.length - 1
+                        index < items.length - 1
                     ) {
 
                         const temp =
@@ -2310,12 +2378,10 @@ function renderItems() {
             );
 
 
-            /* EDITAR */
+            /* EDIT */
 
             const editButton =
-                document.createElement(
-                    "button"
-                );
+                document.createElement("button");
 
 
             editButton.type =
@@ -2348,20 +2414,17 @@ function renderItems() {
                         index;
 
 
-                    $("formTitle")
-                        .textContent =
+                    $("formTitle").textContent =
                         "Editar elemento";
 
 
-                    $("saveButton")
-                        .textContent =
+                    $("saveButton").textContent =
                         "Guardar cambios";
 
 
                     $("cancelButton")
-                        .classList.remove(
-                            "hidden"
-                        );
+                        .classList
+                        .remove("hidden");
 
 
                     loadFormData(
@@ -2370,11 +2433,8 @@ function renderItems() {
 
 
                     window.scrollTo({
-
                         top: 0,
-
                         behavior: "smooth"
-
                     });
 
 
@@ -2387,12 +2447,10 @@ function renderItems() {
             );
 
 
-            /* DUPLICAR */
+            /* DUPLICATE */
 
             const duplicateButton =
-                document.createElement(
-                    "button"
-                );
+                document.createElement("button");
 
 
             duplicateButton.type =
@@ -2453,12 +2511,10 @@ function renderItems() {
             );
 
 
-            /* BORRAR */
+            /* DELETE */
 
             const deleteButton =
-                document.createElement(
-                    "button"
-                );
+                document.createElement("button");
 
 
             deleteButton.type =
@@ -2500,7 +2556,9 @@ function renderItems() {
 
                         clearForm();
 
-                    } else if (
+                    }
+
+                    else if (
                         editingIndex >
                         index
                     ) {
@@ -2548,23 +2606,15 @@ function renderItems() {
             );
 
 
-            row.appendChild(
-                info
-            );
+            row.appendChild(info);
 
-            row.appendChild(
-                actions
-            );
+            row.appendChild(actions);
 
 
-            list.appendChild(
-                row
-            );
+            list.appendChild(row);
 
 
-            setupDrag(
-                row
-            );
+            setupDrag(row);
 
         }
     );
@@ -2573,20 +2623,22 @@ function renderItems() {
 
 
 /* =========================================================
-   DRAG
+   DRAG & DROP
 ========================================================= */
+
+let dragState = null;
+
 
 function getItemRows() {
 
     return Array.from(
         $("itemsList").children
     )
+
     .filter(function(element) {
 
         return (
-            element.classList.contains(
-                "item"
-            ) &&
+            element.classList.contains("item") &&
             !element.classList.contains(
                 "drag-placeholder"
             )
@@ -2597,9 +2649,7 @@ function getItemRows() {
 }
 
 
-function animateRows(
-    beforeRects
-) {
+function animateRows(beforeRects) {
 
     getItemRows().forEach(
         function(row) {
@@ -2613,9 +2663,7 @@ function animateRows(
 
 
             const first =
-                beforeRects.get(
-                    row
-                );
+                beforeRects.get(row);
 
 
             if (!first) {
@@ -2640,7 +2688,6 @@ function animateRows(
 
 
             row.animate(
-
                 [
                     {
                         transform:
@@ -2651,17 +2698,12 @@ function animateRows(
                         transform:
                             "translateY(0)"
                     }
-
                 ],
-
                 {
                     duration: 180,
-
                     easing:
                         "cubic-bezier(.2,.8,.2,1)"
-
                 }
-
             );
 
         }
@@ -2712,8 +2754,7 @@ function movePlaceholder(
         function(row) {
 
             if (
-                row !==
-                dragState.row
+                row !== dragState.row
             ) {
 
                 beforeRects.set(
@@ -2734,7 +2775,9 @@ function movePlaceholder(
             beforeElement
         );
 
-    } else {
+    }
+
+    else {
 
         list.appendChild(
             placeholder
@@ -2761,6 +2804,7 @@ function updatePlaceholder(
 
     const rows =
         getItemRows()
+
             .filter(function(row) {
 
                 return (
@@ -2867,9 +2911,9 @@ function finishDrag() {
         null;
 
 
-    document.body.classList.remove(
-        "drag-active"
-    );
+    document.body
+        .classList
+        .remove("drag-active");
 
 
     const row =
@@ -2890,9 +2934,7 @@ function finishDrag() {
         !list
     ) {
 
-        cleanupDragStyles(
-            row
-        );
+        cleanupDragStyles(row);
 
         return;
 
@@ -2917,11 +2959,6 @@ function finishDrag() {
     const currentRect =
         row.getBoundingClientRect();
 
-
-    /*
-        La posición del placeholder es
-        la posición definitiva.
-    */
 
     if (
         placeholder &&
@@ -3054,9 +3091,9 @@ function cancelDrag() {
         null;
 
 
-    document.body.classList.remove(
-        "drag-active"
-    );
+    document.body
+        .classList
+        .remove("drag-active");
 
 
     const row =
@@ -3092,7 +3129,9 @@ function cancelDrag() {
             state.originalNextSibling
         );
 
-    } else {
+    }
+
+    else {
 
         list.appendChild(
             row
@@ -3138,9 +3177,7 @@ function setupDrag(row) {
                 event.button !== undefined &&
                 event.button !== 0
             ) {
-
                 return;
-
             }
 
 
@@ -3149,9 +3186,7 @@ function setupDrag(row) {
                     "button"
                 )
             ) {
-
                 return;
-
             }
 
 
@@ -3198,10 +3233,7 @@ function setupDrag(row) {
 
                 if (
                     !dragState &&
-                    Math.hypot(
-                        dx,
-                        dy
-                    ) < 5
+                    Math.hypot(dx, dy) < 5
                 ) {
 
                     return;
@@ -3456,9 +3488,7 @@ window.addEventListener(
     function() {
 
         if (dragState) {
-
             cancelDrag();
-
         }
 
     }
@@ -3466,7 +3496,7 @@ window.addEventListener(
 
 
 /* =========================================================
-   IMPORTACIÓN
+   IMPORT
 ========================================================= */
 
 function findTinyPhotosList(
@@ -3485,11 +3515,11 @@ function findTinyPhotosList(
             Array.from(
                 section.children
             )
+
             .find(function(element) {
 
                 return (
-                    element.tagName
-                        .toLowerCase() ===
+                    element.tagName.toLowerCase() ===
                     "ul"
                 );
 
@@ -3527,11 +3557,11 @@ function getDirectLiChildren(
     return Array.from(
         list.children
     )
+
     .filter(function(element) {
 
         return (
-            element.tagName
-                .toLowerCase() ===
+            element.tagName.toLowerCase() ===
             "li"
         );
 
@@ -3541,7 +3571,7 @@ function getDirectLiChildren(
 
 
 /* =========================================================
-   IMPORTAR POLAROID
+   IMPORT POLAROID
 ========================================================= */
 
 function importPolaroid(li) {
@@ -3550,11 +3580,11 @@ function importPolaroid(li) {
         Array.from(
             li.children
         )
+
         .find(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "p"
             );
 
@@ -3565,11 +3595,11 @@ function importPolaroid(li) {
         Array.from(
             li.children
         )
+
         .find(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "ul"
             );
 
@@ -3593,21 +3623,22 @@ function importPolaroid(li) {
         Array.from(
             list.children
         )
+
         .filter(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "li"
             );
 
         })
+
         .map(function(element) {
 
-            return element.textContent
-                .trim();
+            return element.textContent.trim();
 
         })
+
         .join("\n");
 
 
@@ -3617,14 +3648,12 @@ function importPolaroid(li) {
             "polaroid",
 
         image:
-            img.getAttribute(
-                "src"
-            ) || "",
+            img.getAttribute("src") ||
+            "",
 
         alt:
-            img.getAttribute(
-                "alt"
-            ) || "",
+            img.getAttribute("alt") ||
+            "",
 
         caption:
             caption
@@ -3635,7 +3664,7 @@ function importPolaroid(li) {
 
 
 /* =========================================================
-   IMPORTAR STICKY PNG
+   IMPORT STICKY PNG
 ========================================================= */
 
 function importStickyPng(li) {
@@ -3644,11 +3673,11 @@ function importStickyPng(li) {
         Array.from(
             li.children
         )
+
         .find(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                     "img" &&
                 element.classList.contains(
                     "sticky-drawing"
@@ -3669,14 +3698,12 @@ function importStickyPng(li) {
             "sticky-png",
 
         image:
-            img.getAttribute(
-                "src"
-            ) || "",
+            img.getAttribute("src") ||
+            "",
 
         alt:
-            img.getAttribute(
-                "alt"
-            ) || ""
+            img.getAttribute("alt") ||
+            ""
 
     };
 
@@ -3684,7 +3711,7 @@ function importStickyPng(li) {
 
 
 /* =========================================================
-   IMPORTAR TICKET
+   IMPORT TICKET
 ========================================================= */
 
 function importTicket(li) {
@@ -3693,11 +3720,11 @@ function importTicket(li) {
         Array.from(
             li.children
         )
+
         .find(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "img"
             );
 
@@ -3715,14 +3742,12 @@ function importTicket(li) {
             "ticket",
 
         image:
-            img.getAttribute(
-                "src"
-            ) || "",
+            img.getAttribute("src") ||
+            "",
 
         alt:
-            img.getAttribute(
-                "alt"
-            ) || ""
+            img.getAttribute("alt") ||
+            ""
 
     };
 
@@ -3730,7 +3755,7 @@ function importTicket(li) {
 
 
 /* =========================================================
-   IMPORTAR PNG FRAME
+   IMPORT PNG FRAME
 ========================================================= */
 
 function importPngFrame(li) {
@@ -3739,11 +3764,11 @@ function importPngFrame(li) {
         Array.from(
             li.children
         )
+
         .find(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "img"
             );
 
@@ -3760,9 +3785,8 @@ function importPngFrame(li) {
 
 
     const style =
-        li.getAttribute(
-            "style"
-        ) || "";
+        li.getAttribute("style") ||
+        "";
 
 
     const match =
@@ -3785,14 +3809,12 @@ function importPngFrame(li) {
             "png-frame",
 
         image:
-            img.getAttribute(
-                "src"
-            ) || "",
+            img.getAttribute("src") ||
+            "",
 
         alt:
-            img.getAttribute(
-                "alt"
-            ) || "",
+            img.getAttribute("alt") ||
+            "",
 
         scale:
             scale
@@ -3803,7 +3825,7 @@ function importPngFrame(li) {
 
 
 /* =========================================================
-   IMPORTAR STICKY FECHA
+   IMPORT STICKY FECHA
 ========================================================= */
 
 function importStickyFecha(li) {
@@ -3812,11 +3834,11 @@ function importStickyFecha(li) {
         Array.from(
             li.children
         )
+
         .find(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "p"
             );
 
@@ -3827,11 +3849,11 @@ function importStickyFecha(li) {
         Array.from(
             li.children
         )
+
         .find(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "ul"
             );
 
@@ -3847,11 +3869,11 @@ function importStickyFecha(li) {
         Array.from(
             list.children
         )
+
         .find(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "li"
             );
 
@@ -3864,8 +3886,7 @@ function importStickyFecha(li) {
             "sticky-fecha",
 
         text:
-            paragraph.textContent
-                .trim(),
+            paragraph.textContent.trim(),
 
         date:
             dateLi
@@ -3878,137 +3899,134 @@ function importStickyFecha(li) {
 
 
 /* =========================================================
-   IMPORTAR DIARY
+   IMPORT DIARY
 ========================================================= */
 
+
+/*
+ * IMPORTANTE:
+ *
+ * Aquí NO usamos innerHTML para obtener el contenido
+ * de los <p>.
+ *
+ * Usamos textContent.
+ *
+ * Así, si tenemos:
+ *
+ * <p>Don't go</p>
+ * <hr>
+ * <p>Next paragraph</p>
+ *
+ * obtenemos:
+ *
+ * Don't go
+ * ...
+ * Next paragraph
+ *
+ * y cuando se vuelva a generar:
+ *
+ * <p>Don't go</p>
+ * <hr>
+ * <p>Next paragraph</p>
+ *
+ * Los tags no se convierten en texto.
+ */
 function importDiary(li) {
 
-    const children =
+    const directChildren =
         Array.from(
             li.children
         );
 
 
-    const hasDiaryImage =
-        children.some(
+    const hasDiaryStructure =
+        directChildren.some(
             function(element) {
 
+                const tag =
+                    element.tagName.toLowerCase();
+
+
                 return (
-                    element.tagName
-                        .toLowerCase() ===
-                    "img" &&
-                    element.getAttribute(
-                        "alt"
-                    ) ===
-                    "Diario"
+                    tag === "p" ||
+                    tag === "hr"
                 );
 
             }
         );
 
 
-    const hasHr =
-        children.some(
-            function(element) {
-
-                return (
-                    element.tagName
-                        .toLowerCase() ===
-                    "hr"
-                );
-
-            }
-        );
-
-
-    if (
-        !hasHr &&
-        !hasDiaryImage
-    ) {
-
+    if (!hasDiaryStructure) {
         return null;
-
     }
 
 
-    const paragraphs = [];
-
-
-    let currentParagraph =
+    const parts =
         [];
 
 
-    children.forEach(
+    directChildren.forEach(
         function(element) {
 
             const tag =
-                element.tagName
-                    .toLowerCase();
+                element.tagName.toLowerCase();
 
 
-            if (tag === "img") {
-                return;
-            }
-
-
+            /*
+             * PÁRRAFO
+             */
             if (tag === "p") {
 
-                const html =
-                    element.innerHTML
-                        .replace(
-                            /<br\s*\/?>/gi,
-                            "\n"
-                        );
-
-
-                const temp =
-                    document.createElement(
-                        "div"
+                /*
+                 * Si hubiera <br> dentro del <p>,
+                 * los convertimos en saltos de línea
+                 * antes de leer el texto.
+                 */
+                const clone =
+                    element.cloneNode(
+                        true
                     );
 
 
-                temp.innerHTML =
-                    html;
+                clone
+                    .querySelectorAll("br")
+                    .forEach(
+                        function(br) {
+
+                            br.replaceWith(
+                                document.createTextNode(
+                                    "\n"
+                                )
+                            );
+
+                        }
+                    );
 
 
                 const text =
-                    temp.textContent
+                    clone.textContent
                         .trim();
 
 
                 if (text) {
 
-                    currentParagraph.push(
+                    parts.push(
                         text
                     );
 
                 }
 
-
-                return;
-
             }
 
 
+            /*
+             * SEPARADOR
+             */
             if (tag === "hr") {
 
-                const paragraph =
-                    currentParagraph
-                        .join("\n")
-                        .trim();
-
-
-                if (paragraph) {
-
-                    paragraphs.push(
-                        paragraph
-                    );
-
-                }
-
-
-                currentParagraph =
-                    [];
+                parts.push(
+                    "..."
+                );
 
             }
 
@@ -4016,22 +4034,7 @@ function importDiary(li) {
     );
 
 
-    const finalParagraph =
-        currentParagraph
-            .join("\n")
-            .trim();
-
-
-    if (finalParagraph) {
-
-        paragraphs.push(
-            finalParagraph
-        );
-
-    }
-
-
-    if (!paragraphs.length) {
+    if (!parts.length) {
         return null;
     }
 
@@ -4042,9 +4045,7 @@ function importDiary(li) {
             "diary",
 
         text:
-            paragraphs.join(
-                "\n---\n"
-            )
+            parts.join("\n")
 
     };
 
@@ -4052,7 +4053,7 @@ function importDiary(li) {
 
 
 /* =========================================================
-   IMPORTAR FILM STRIP
+   IMPORT FILM STRIP
 ========================================================= */
 
 function importFilmStrip(li) {
@@ -4072,6 +4073,7 @@ function importFilmStrip(li) {
         Array.from(
             li.children
         )
+
         .filter(function(element) {
 
             return element.classList.contains(
@@ -4108,44 +4110,32 @@ function importFilmStrip(li) {
 
         image1:
             images[0]
-                ? images[0].getAttribute(
-                    "src"
-                ) || ""
+                ? images[0].getAttribute("src") || ""
                 : "",
 
         alt1:
             images[0]
-                ? images[0].getAttribute(
-                    "alt"
-                ) || ""
+                ? images[0].getAttribute("alt") || ""
                 : "",
 
         image2:
             images[1]
-                ? images[1].getAttribute(
-                    "src"
-                ) || ""
+                ? images[1].getAttribute("src") || ""
                 : "",
 
         alt2:
             images[1]
-                ? images[1].getAttribute(
-                    "alt"
-                ) || ""
+                ? images[1].getAttribute("alt") || ""
                 : "",
 
         image3:
             images[2]
-                ? images[2].getAttribute(
-                    "src"
-                ) || ""
+                ? images[2].getAttribute("src") || ""
                 : "",
 
         alt3:
             images[2]
-                ? images[2].getAttribute(
-                    "alt"
-                ) || ""
+                ? images[2].getAttribute("alt") || ""
                 : ""
 
     };
@@ -4154,47 +4144,7 @@ function importFilmStrip(li) {
 
 
 /* =========================================================
-   IMPORTAR STICKY
-========================================================= */
-
-function importSticky(li) {
-
-    const paragraph =
-        Array.from(
-            li.children
-        )
-        .find(function(element) {
-
-            return (
-                element.tagName
-                    .toLowerCase() ===
-                "p"
-            );
-
-        });
-
-
-    if (!paragraph) {
-        return null;
-    }
-
-
-    return {
-
-        type:
-            "sticky",
-
-        text:
-            paragraph.textContent
-                .trim()
-
-    };
-
-}
-
-
-/* =========================================================
-   RECONOCER LI
+   IMPORT LI
 ========================================================= */
 
 function importLi(li) {
@@ -4247,25 +4197,23 @@ function importLi(li) {
 
     /* STICKY PNG */
 
-    const hasStickyDrawing =
+    if (
         Array.from(
             li.children
         )
+
         .some(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                     "img" &&
                 element.classList.contains(
                     "sticky-drawing"
                 )
             );
 
-        });
-
-
-    if (hasStickyDrawing) {
+        })
+    ) {
 
         return importStickyPng(
             li
@@ -4275,21 +4223,27 @@ function importLi(li) {
 
 
     /*
-        POLAROID
-
-        P directo + UL directo +
-        IMG dentro del P.
-    */
+     * POLAROID
+     *
+     * Se comprueba antes de Sticky Fecha.
+     *
+     * Estructura:
+     *
+     * <li>
+     *   <p><img ...></p>
+     *   <ul>...</ul>
+     * </li>
+     */
 
     const directParagraph =
         Array.from(
             li.children
         )
+
         .find(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "p"
             );
 
@@ -4300,11 +4254,11 @@ function importLi(li) {
         Array.from(
             li.children
         )
+
         .find(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "ul"
             );
 
@@ -4331,61 +4285,40 @@ function importLi(li) {
     }
 
 
-    /* DIARY */
+    /*
+     * DIARY
+     *
+     * Si tiene un <hr> directo,
+     * es Diary.
+     */
 
     const hasDirectHr =
         Array.from(
             li.children
         )
+
         .some(function(element) {
 
             return (
-                element.tagName
-                    .toLowerCase() ===
+                element.tagName.toLowerCase() ===
                 "hr"
             );
 
         });
 
 
-    const hasDiaryImage =
-        Array.from(
-            li.children
-        )
-        .some(function(element) {
+    if (hasDirectHr) {
 
-            return (
-                element.tagName
-                    .toLowerCase() ===
-                    "img" &&
-                element.getAttribute(
-                    "alt"
-                ) ===
-                "Diario"
-            );
-
-        });
-
-
-    if (
-        hasDirectHr ||
-        hasDiaryImage
-    ) {
-
-        const diary =
-            importDiary(
-                li
-            );
-
-
-        if (diary) {
-            return diary;
-        }
+        return importDiary(
+            li
+        );
 
     }
 
 
-    /* STICKY FECHA */
+    /*
+     * STICKY + FECHA
+     */
 
     if (
         directParagraph &&
@@ -4399,7 +4332,9 @@ function importLi(li) {
     }
 
 
-    /* STICKY */
+    /*
+     * STICKY
+     */
 
     if (directParagraph) {
 
@@ -4410,7 +4345,9 @@ function importLi(li) {
     }
 
 
-    /* DIARY CON HR ANIDADO */
+    /*
+     * FALLBACK DIARY
+     */
 
     if (
         li.querySelector(
@@ -4431,7 +4368,46 @@ function importLi(li) {
 
 
 /* =========================================================
-   IMPORTAR HTML
+   IMPORT STICKY
+========================================================= */
+
+function importSticky(li) {
+
+    const paragraph =
+        Array.from(
+            li.children
+        )
+
+        .find(function(element) {
+
+            return (
+                element.tagName.toLowerCase() ===
+                "p"
+            );
+
+        });
+
+
+    if (!paragraph) {
+        return null;
+    }
+
+
+    return {
+
+        type:
+            "sticky",
+
+        text:
+            paragraph.textContent.trim()
+
+    };
+
+}
+
+
+/* =========================================================
+   IMPORT HTML
 ========================================================= */
 
 function importHtml() {
@@ -4504,7 +4480,8 @@ function importHtml() {
     }
 
 
-    const imported = [];
+    const imported =
+        [];
 
 
     let ignored =
@@ -4515,9 +4492,7 @@ function importHtml() {
         function(li) {
 
             const item =
-                importLi(
-                    li
-                );
+                importLi(li);
 
 
             if (item) {
@@ -4526,7 +4501,9 @@ function importHtml() {
                     item
                 );
 
-            } else {
+            }
+
+            else {
 
                 ignored++;
 
@@ -4615,7 +4592,7 @@ function importHtml() {
 
 
 /* =========================================================
-   GUARDAR FORMULARIO
+   SAVE FORM
 ========================================================= */
 
 function saveForm() {
@@ -4653,6 +4630,7 @@ function saveForm() {
 
         clearForm();
 
+
         return;
 
     }
@@ -4683,7 +4661,7 @@ function saveForm() {
 
 
 /* =========================================================
-   COPIAR HTML
+   COPY
 ========================================================= */
 
 async function copyOutput() {
@@ -4710,7 +4688,9 @@ async function copyOutput() {
             "success"
         );
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
         $("output").focus();
 
@@ -4730,7 +4710,9 @@ async function copyOutput() {
                 "success"
             );
 
-        } catch (fallbackError) {
+        }
+
+        catch (fallbackError) {
 
             setStatus(
                 "outputStatus",
@@ -4746,7 +4728,7 @@ async function copyOutput() {
 
 
 /* =========================================================
-   DESCARGAR HTML
+   DOWNLOAD
 ========================================================= */
 
 function downloadOutput() {
@@ -4841,9 +4823,7 @@ function resetAll() {
 
     items = [];
 
-
-    editingIndex =
-        -1;
+    editingIndex = -1;
 
 
     saveToStorage();
@@ -4869,7 +4849,7 @@ function resetAll() {
 
 
 /* =========================================================
-   EVENTOS
+   EVENTS
 ========================================================= */
 
 $("elementType")
@@ -4966,7 +4946,7 @@ $("clearImportButton")
 
 
 /* =========================================================
-   INICIALIZACIÓN
+   INIT
 ========================================================= */
 
 loadFromStorage();
