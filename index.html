@@ -1,1 +1,4719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhotoBox Generator</title>
 
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 24px;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #fff;
+        color: #222;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    h1 {
+        margin: 0 0 20px;
+        font-size: 28px;
+    }
+
+    h2 {
+        margin: 0 0 14px;
+        font-size: 20px;
+    }
+
+    .panel {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 18px;
+        margin-bottom: 18px;
+        background: #fff;
+    }
+
+    .field {
+        margin-bottom: 14px;
+    }
+
+    .field label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 10px 11px;
+        font: inherit;
+        background: #fff;
+        color: #222;
+    }
+
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    button {
+        border: 1px solid #d2d2d2;
+        border-radius: 6px;
+        padding: 9px 13px;
+        cursor: pointer;
+        font-weight: 600;
+        background: #f7f7f7;
+        color: #333;
+        margin-right: 6px;
+        margin-bottom: 6px;
+        box-shadow: none;
+        transition:
+            background .15s ease,
+            border-color .15s ease,
+            color .15s ease,
+            transform .1s ease;
+    }
+
+    button:hover {
+        background: #ececec;
+        border-color: #bdbdbd;
+    }
+
+    button:active {
+        transform: translateY(1px);
+    }
+
+    button.secondary {
+        background: #f7f7f7;
+        color: #555;
+        border-color: #d2d2d2;
+    }
+
+    button.success {
+        background: #eeeeee;
+        color: #222;
+        border-color: #c8c8c8;
+    }
+
+    button.danger {
+        background: #f7f7f7;
+        color: #555;
+        border-color: #d2d2d2;
+    }
+
+    button.format {
+        background: #f7f7f7;
+        color: #444;
+        border-color: #d2d2d2;
+    }
+
+    .actions {
+        margin-top: 10px;
+    }
+
+    .status {
+        min-height: 20px;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .hint {
+        font-size: 12px;
+        color: #777;
+        margin-top: 5px;
+        line-height: 1.4;
+    }
+
+    /*
+     * ============================================================
+     * LAYOUT
+     * ============================================================
+     */
+
+    .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 430px);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .main-column {
+        min-width: 0;
+    }
+
+    .elements-panel {
+        min-width: 0;
+        position: sticky;
+        top: 16px;
+        height: calc(100vh - 32px);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .elements-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 4px;
+        overscroll-behavior: contain;
+    }
+
+    #itemsList {
+        min-height: 20px;
+    }
+
+    /*
+     * ============================================================
+     * ELEMENTOS
+     * ============================================================
+     */
+
+    .element-entry {
+        position: relative;
+        width: 100%;
+        margin-bottom: 8px;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        cursor: grab;
+    }
+
+    .element-entry.dragging {
+        z-index: 1000;
+    }
+
+    .item {
+        position: relative;
+        background: #fafafa;
+        border: 1px solid #ddd;
+        border-radius: 9px;
+        padding: 12px;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+        transform: scale(1);
+        transition:
+            opacity .15s ease,
+            transform .18s ease,
+            border-color .15s ease,
+            background .15s ease,
+            box-shadow .18s ease;
+    }
+
+    .item:hover {
+        background: #fdfdfd;
+        border-color: #cfcfcf;
+    }
+
+    .item.dragging {
+        opacity: .95;
+        background: #fff;
+        border-color: #999;
+        transform: scale(1.035) translateY(-2px);
+        box-shadow:
+            0 14px 30px rgba(0,0,0,.18),
+            0 3px 8px rgba(0,0,0,.10);
+        z-index: 1000;
+    }
+
+    .item.dragging::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 9px;
+        pointer-events: none;
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,.08);
+    }
+
+    .item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .item-title {
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+
+    .item-description {
+        font-size: 13px;
+        color: #666;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .item-actions {
+        flex-shrink: 0;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    /*
+     * Iconos planos.
+     * No tienen aspecto de botón grande.
+     */
+
+    .item-actions button {
+        width: 27px;
+        height: 27px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: #555;
+        font-size: 17px;
+        line-height: 27px;
+        font-weight: 400;
+        text-align: center;
+        box-shadow: none;
+    }
+
+    .item-actions button:hover {
+        background: #ededed;
+        border: 0;
+        color: #222;
+    }
+
+    .item-actions button:active {
+        transform: translateY(1px);
+    }
+
+    .item-actions .delete-button:hover {
+        color: #333;
+    }
+
+    /*
+     * + FUERA DEL ELEMENTO, A LA DERECHA
+     */
+
+    .insert-after {
+        position: absolute;
+        right: -32px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 26px;
+        height: 26px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #666;
+        font-size: 21px;
+        font-weight: 400;
+        line-height: 24px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: none;
+    }
+
+    .insert-after:hover {
+        background: #f0f0f0;
+        border: 0;
+        color: #222;
+    }
+
+    .element-entry.dragging .insert-after {
+        visibility: hidden;
+    }
+
+    /*
+     * ELEMENTO VACÍO
+     */
+
+    .item.blank-item {
+        background: #fff;
+        border-style: dashed;
+        border-color: #c8c8c8;
+    }
+
+    .item.blank-item .item-title {
+        color: #666;
+        font-weight: 600;
+    }
+
+    .item.blank-item .item-description {
+        color: #999;
+    }
+
+    /*
+     * PLACEHOLDER DE ARRASTRE
+     */
+
+    .drag-placeholder {
+        box-sizing: border-box;
+        border: 2px dashed #c7c7c7;
+        border-radius: 9px;
+        background: #f5f5f5;
+        margin-bottom: 8px;
+        position: relative;
+        opacity: .95;
+        transition:
+            height .15s ease,
+            opacity .15s ease;
+    }
+
+    .drag-placeholder::before {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 50%;
+        height: 2px;
+        transform: translateY(-50%);
+        background: #d0d0d0;
+        border-radius: 999px;
+    }
+
+    body.drag-active {
+        user-select: none;
+        -webkit-user-select: none;
+        cursor: grabbing;
+    }
+
+    /*
+     * ============================================================
+     * OUTPUT
+     * ============================================================
+     */
+
+    #output {
+        min-height: 300px;
+        font-family: Consolas, Monaco, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre;
+    }
+
+    .empty {
+        color: #888;
+        font-size: 14px;
+        padding: 8px 0;
+    }
+
+    .two-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+
+        .workspace {
+            grid-template-columns: 1fr;
+        }
+
+        .elements-panel {
+            position: static;
+            height: auto;
+            max-height: 60vh;
+        }
+
+        .elements-list {
+            max-height: calc(60vh - 120px);
+        }
+    }
+
+    @media (max-width: 750px) {
+
+        .two-columns {
+            grid-template-columns: 1fr;
+        }
+
+        body {
+            padding: 14px;
+        }
+
+        .item {
+            align-items: flex-start;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .insert-after {
+            right: -27px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>PhotoBox Generator</h1>
+
+    <div class="workspace">
+
+        <!-- ======================================================
+             COLUMNA PRINCIPAL
+             ====================================================== -->
+
+        <div class="main-column">
+
+            <div class="panel">
+
+                <h2>Añadir elemento</h2>
+
+                <div class="field">
+                    <label for="elementType">Tipo de elemento</label>
+                    <select id="elementType">
+
+                        <!-- Se mantiene Polaroid como valor inicial de V1 -->
+                        <option value="polaroid">Polaroid</option>
+
+                        <option value="sticky">Sticky Note</option>
+
+                        <option value="sticky-fecha">
+                            Sticky Note + Fecha
+                        </option>
+
+                        <option value="sticky-png">
+                            Sticky PNG
+                        </option>
+
+                        <option value="ticket">
+                            Ticket
+                        </option>
+
+                        <option value="png-frame">
+                            PNG Frame
+                        </option>
+
+                        <option value="diary">
+                            Diary Notes
+                        </option>
+
+                        <option value="film-strip">
+                            Film Strip
+                        </option>
+
+                        <!-- Solo se utiliza internamente al editar un blank -->
+                        <option value="__blank__" hidden>
+                            Selecciona un tipo...
+                        </option>
+
+                    </select>
+                </div>
+
+
+                <!-- POLAROID -->
+
+                <div class="type-fields" id="fields-polaroid">
+
+                    <div class="field">
+                        <label for="polaroidImage">
+                            URL de la imagen
+                        </label>
+
+                        <input
+                            id="polaroidImage"
+                            type="text"
+                            placeholder="https://..."
+                        >
+                    </div>
+
+
+                    <div class="field">
+                        <label for="polaroidAlt">
+                            ALT de la imagen
+                        </label>
+
+                        <input
+                            id="polaroidAlt"
+                            type="text"
+                            placeholder="Descripción de la imagen"
+                        >
+                    </div>
+
+
+                    <div class="field">
+                        <label for="polaroidText">
+                            Texto de la Polaroid
+                        </label>
+
+                        <input
+                            id="polaroidText"
+                            type="text"
+                            placeholder="Texto"
+                        >
+
+                        <div class="hint">
+                            La Polaroid lleva una sola línea de texto.
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- STICKY -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-sticky"
+                >
+
+                    <div class="field">
+
+                        <label for="stickyText">
+                            Texto del Sticky Note
+                        </label>
+
+                        <textarea
+                            id="stickyText"
+                            placeholder="Texto"
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STICKY FECHA -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-sticky-fecha"
+                >
+
+                    <div class="field">
+
+                        <label for="stickyFechaText">
+                            Texto del Sticky Note
+                        </label>
+
+                        <textarea
+                            id="stickyFechaText"
+                            placeholder="Texto"
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="stickyFechaDate">
+                            Fecha
+                        </label>
+
+                        <input
+                            id="stickyFechaDate"
+                            type="text"
+                            placeholder="01/01/2026"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- STICKY PNG -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-sticky-png"
+                >
+
+                    <div class="field">
+
+                        <label for="stickyPngImage">
+                            URL del PNG
+                        </label>
+
+                        <input
+                            id="stickyPngImage"
+                            type="text"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="stickyPngAlt">
+                            ALT del PNG
+                        </label>
+
+                        <input
+                            id="stickyPngAlt"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- TICKET -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-ticket"
+                >
+
+                    <div class="field">
+
+                        <label for="ticketImage">
+                            URL de la imagen
+                        </label>
+
+                        <input
+                            id="ticketImage"
+                            type="text"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="ticketAlt">
+                            ALT de la imagen
+                        </label>
+
+                        <input
+                            id="ticketAlt"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- PNG FRAME -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-png-frame"
+                >
+
+                    <div class="field">
+
+                        <label for="pngFrameImage">
+                            URL de la imagen
+                        </label>
+
+                        <input
+                            id="pngFrameImage"
+                            type="text"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="pngFrameAlt">
+                            ALT de la imagen
+                        </label>
+
+                        <input
+                            id="pngFrameAlt"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="pngFrameScale">
+                            Escala
+                        </label>
+
+                        <input
+                            id="pngFrameScale"
+                            type="number"
+                            step="0.1"
+                            value="1.4"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- DIARY -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-diary"
+                >
+
+                    <div class="field">
+
+                        <label for="diaryText">
+                            Contenido del Diary Notes
+                        </label>
+
+                        <textarea
+                            id="diaryText"
+                            placeholder="Escribe cada párrafo en una línea diferente. Escribe ... o … en una línea para crear una separación."
+                        ></textarea>
+
+
+                        <div class="hint">
+                            Una línea con
+                            <strong>...</strong> o
+                            <strong>…</strong>
+                            se convierte directamente en
+                            <strong>&lt;hr&gt;</strong>.
+                            El &lt;hr&gt; queda fuera de los párrafos.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FILM STRIP -->
+
+                <div
+                    class="type-fields hidden"
+                    id="fields-film-strip"
+                >
+
+                    <div class="field">
+
+                        <label for="filmName">
+                            Nombre / comentario del Film Strip
+                        </label>
+
+                        <input
+                            id="filmName"
+                            type="text"
+                            placeholder="Nombre o comentario"
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmImage1">
+                            Imagen 1
+                        </label>
+
+                        <input
+                            id="filmImage1"
+                            type="text"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmAlt1">
+                            ALT 1
+                        </label>
+
+                        <input
+                            id="filmAlt1"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmImage2">
+                            Imagen 2
+                        </label>
+
+                        <input
+                            id="filmImage2"
+                            type="text"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmAlt2">
+                            ALT 2
+                        </label>
+
+                        <input
+                            id="filmAlt2"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmImage3">
+                            Imagen 3
+                        </label>
+
+                        <input
+                            id="filmImage3"
+                            type="text"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="filmAlt3">
+                            ALT 3
+                        </label>
+
+                        <input
+                            id="filmAlt3"
+                            type="text"
+                            placeholder="Descripción"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="actions">
+
+                    <button
+                        id="addButton"
+                        class="success"
+                    >
+                        Añadir elemento
+                    </button>
+
+
+                    <button
+                        id="cancelEditButton"
+                        class="secondary hidden"
+                    >
+                        Cancelar edición
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="formStatus"
+                    class="status"
+                ></div>
+
+            </div>
+
+
+            <!-- HTML GENERADO -->
+
+            <div class="panel">
+
+                <h2>HTML generado</h2>
+
+                <textarea
+                    id="output"
+                    readonly
+                ></textarea>
+
+
+                <div class="actions">
+
+                    <button
+                        id="copyButton"
+                        class="success"
+                    >
+                        Copiar HTML
+                    </button>
+
+
+                    <button
+                        id="downloadButton"
+                        class="secondary"
+                    >
+                        Descargar HTML
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="outputStatus"
+                    class="status"
+                ></div>
+
+            </div>
+
+
+            <!-- IMPORTAR -->
+
+            <div class="panel">
+
+                <h2>Importar HTML existente</h2>
+
+                <textarea
+                    id="importInput"
+                    placeholder="Pega aquí un documento HTML, una sección .tiny-photos, un <ul> o elementos <li>..."
+                ></textarea>
+
+
+                <div class="actions">
+
+                    <button
+                        id="importButton"
+                        class="success"
+                    >
+                        Importar HTML
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="importStatus"
+                    class="status"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ======================================================
+             COLUMNA ELEMENTOS
+             ====================================================== -->
+
+        <div class="panel elements-panel">
+
+            <h2>Elementos activos</h2>
+
+            <div class="hint">
+                Arrastra los elementos para cambiar su orden.
+            </div>
+
+
+            <div
+                id="itemsList"
+                class="elements-list"
+            ></div>
+
+
+            <div class="actions">
+
+                <button
+                    id="resetButton"
+                    class="danger"
+                >
+                    Borrar todo
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+(function() {
+
+    "use strict";
+
+
+    const STORAGE_KEY =
+        "photobox-generator-items-v4";
+
+
+    let items = [];
+
+    let editingIndex = -1;
+
+    let dragState = null;
+
+
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+
+    /*
+     * ============================================================
+     * UTILIDADES
+     * ============================================================
+     */
+
+    function normalizeLineEndings(value) {
+
+        return String(value ?? "")
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n");
+    }
+
+
+    function escapeHtmlText(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+
+    function escapeHtmlAttribute(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+
+    function capitalizeWords(value) {
+
+        return String(value ?? "")
+            .toLocaleLowerCase("es-ES")
+            .replace(
+                /(^|[\s\u00A0]+)([^\s\u00A0])/g,
+                function(
+                    match,
+                    separator,
+                    firstLetter
+                ) {
+
+                    return (
+                        separator +
+                        firstLetter.toLocaleUpperCase("es-ES")
+                    );
+                }
+            );
+    }
+
+
+    /*
+     * ============================================================
+     * DIARY
+     * ============================================================
+     */
+
+    function normalizeDiaryLine(line) {
+
+        return String(line ?? "")
+            .replace(
+                /[\uFEFF\u200B\u200C\u200D\u2060]/g,
+                ""
+            )
+            .replace(/\u00A0/g, " ")
+            .trim();
+    }
+
+
+    function isDiarySeparator(line) {
+
+        const normalized =
+            normalizeDiaryLine(line);
+
+        return (
+            normalized === "..." ||
+            normalized === "…" ||
+            normalized === "⋯"
+        );
+    }
+
+
+    function formatDiaryToHtml(text) {
+
+        const lines =
+            normalizeLineEndings(text).split("\n");
+
+        const output = [];
+
+
+        lines.forEach(function(line) {
+
+            const normalized =
+                normalizeDiaryLine(line);
+
+
+            if (isDiarySeparator(normalized)) {
+
+                output.push("<hr>");
+
+                return;
+            }
+
+
+            if (!normalized) {
+                return;
+            }
+
+
+            output.push(
+                "<p>" +
+                escapeHtmlText(normalized) +
+                "</p>"
+            );
+
+        });
+
+
+        return output.join("\n");
+    }
+
+
+    function importDiary(li) {
+
+        const directChildren =
+            Array.from(li.children);
+
+
+        const hasDiaryStructure =
+            directChildren.some(function(element) {
+
+                const tag =
+                    element.tagName.toLowerCase();
+
+                return (
+                    tag === "p" ||
+                    tag === "hr"
+                );
+            });
+
+
+        const hasDiaryMarker =
+            directChildren.some(function(element) {
+
+                return (
+                    element.tagName.toLowerCase() === "img" &&
+                    element.getAttribute("alt") === "Diario"
+                );
+            });
+
+
+        if (
+            !hasDiaryStructure &&
+            !hasDiaryMarker
+        ) {
+            return null;
+        }
+
+
+        const parts = [];
+
+
+        directChildren.forEach(function(element) {
+
+            const tag =
+                element.tagName.toLowerCase();
+
+
+            if (tag === "p") {
+
+                const clone =
+                    element.cloneNode(true);
+
+
+                clone.querySelectorAll("br")
+                    .forEach(function(br) {
+
+                        br.replaceWith(
+                            document.createTextNode("\n")
+                        );
+
+                    });
+
+
+                const text =
+                    clone.textContent.trim();
+
+
+                if (text) {
+
+                    if (
+                        isDiarySeparator(text)
+                    ) {
+
+                        parts.push("...");
+
+                    } else {
+
+                        parts.push(text);
+
+                    }
+                }
+            }
+
+
+            if (tag === "hr") {
+                parts.push("...");
+            }
+
+        });
+
+
+        if (!parts.length) {
+
+            /*
+             * El marcador Diario por sí solo
+             * sigue siendo un Diary válido vacío.
+             */
+            if (hasDiaryMarker) {
+
+                return {
+                    type: "diary",
+                    text: ""
+                };
+
+            }
+
+            return null;
+        }
+
+
+        return {
+            type: "diary",
+            text: parts.join("\n")
+        };
+    }
+
+
+    /*
+     * ============================================================
+     * FORMULARIO
+     * ============================================================
+     */
+
+    function updateTypeFields() {
+
+        const selectedType =
+            $("elementType").value;
+
+
+        const allFieldTypes = [
+            "polaroid",
+            "sticky",
+            "sticky-fecha",
+            "sticky-png",
+            "ticket",
+            "png-frame",
+            "diary",
+            "film-strip"
+        ];
+
+
+        allFieldTypes.forEach(function(type) {
+
+            const group =
+                $("fields-" + type);
+
+
+            if (!group) {
+                return;
+            }
+
+
+            group.classList.toggle(
+                "hidden",
+                type !== selectedType
+            );
+
+        });
+    }
+
+
+    function getFormData() {
+
+        const type =
+            $("elementType").value;
+
+
+        /*
+         * Este valor solo aparece mientras
+         * se está editando un elemento vacío.
+         */
+        if (
+            !type ||
+            type === "__blank__"
+        ) {
+            return null;
+        }
+
+
+        if (type === "polaroid") {
+
+            return {
+                type: "polaroid",
+                image:
+                    $("polaroidImage").value.trim(),
+                alt:
+                    $("polaroidAlt").value.trim(),
+                text:
+                    $("polaroidText").value
+            };
+        }
+
+
+        if (type === "sticky") {
+
+            return {
+                type: "sticky",
+                text:
+                    $("stickyText").value
+            };
+        }
+
+
+        if (type === "sticky-fecha") {
+
+            return {
+                type: "sticky-fecha",
+                text:
+                    $("stickyFechaText").value,
+                date:
+                    $("stickyFechaDate").value
+            };
+        }
+
+
+        if (type === "sticky-png") {
+
+            return {
+                type: "sticky-png",
+                image:
+                    $("stickyPngImage").value.trim(),
+                alt:
+                    $("stickyPngAlt").value
+            };
+        }
+
+
+        if (type === "ticket") {
+
+            return {
+                type: "ticket",
+                image:
+                    $("ticketImage").value.trim(),
+                alt:
+                    $("ticketAlt").value
+            };
+        }
+
+
+        if (type === "png-frame") {
+
+            return {
+                type: "png-frame",
+                image:
+                    $("pngFrameImage").value.trim(),
+                alt:
+                    $("pngFrameAlt").value,
+                scale:
+                    $("pngFrameScale").value || "1.4"
+            };
+        }
+
+
+        if (type === "diary") {
+
+            return {
+                type: "diary",
+                text:
+                    $("diaryText").value
+            };
+        }
+
+
+        if (type === "film-strip") {
+
+            return {
+                type: "film-strip",
+                name:
+                    $("filmName").value,
+
+                images: [
+
+                    {
+                        image:
+                            $("filmImage1").value.trim(),
+                        alt:
+                            $("filmAlt1").value
+                    },
+
+                    {
+                        image:
+                            $("filmImage2").value.trim(),
+                        alt:
+                            $("filmAlt2").value
+                    },
+
+                    {
+                        image:
+                            $("filmImage3").value.trim(),
+                        alt:
+                            $("filmAlt3").value
+                    }
+
+                ]
+            };
+        }
+
+
+        return null;
+    }
+
+
+    function clearForm() {
+
+        $("polaroidImage").value = "";
+        $("polaroidAlt").value = "";
+        $("polaroidText").value = "";
+
+        $("stickyText").value = "";
+
+        $("stickyFechaText").value = "";
+        $("stickyFechaDate").value = "";
+
+        $("stickyPngImage").value = "";
+        $("stickyPngAlt").value = "";
+
+        $("ticketImage").value = "";
+        $("ticketAlt").value = "";
+
+        $("pngFrameImage").value = "";
+        $("pngFrameAlt").value = "";
+        $("pngFrameScale").value = "1.4";
+
+        $("diaryText").value = "";
+
+        $("filmName").value = "";
+        $("filmImage1").value = "";
+        $("filmAlt1").value = "";
+        $("filmImage2").value = "";
+        $("filmAlt2").value = "";
+        $("filmImage3").value = "";
+        $("filmAlt3").value = "";
+
+
+        editingIndex = -1;
+
+
+        $("addButton").textContent =
+            "Añadir elemento";
+
+
+        $("cancelEditButton")
+            .classList.add("hidden");
+
+
+        /*
+         * V1 empieza siempre mostrando Polaroid.
+         */
+        $("elementType").value =
+            "polaroid";
+
+
+        updateTypeFields();
+    }
+
+
+    function loadItemIntoForm(item) {
+
+        /*
+         * ELEMENTO VACÍO
+         *
+         * Aquí está la parte importante:
+         * NO se crea otro elemento.
+         * editingIndex ya apunta al hueco.
+         *
+         * Al guardar, items[editingIndex] será sustituido.
+         */
+
+        if (item.type === "blank") {
+
+            clearForm();
+
+            $("elementType").value =
+                "__blank__";
+
+            updateTypeFields();
+
+            $("addButton").textContent =
+                "Guardar cambios";
+
+            $("cancelEditButton")
+                .classList.remove("hidden");
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+
+            return;
+        }
+
+
+        $("elementType").value =
+            item.type;
+
+
+        clearForm();
+
+
+        $("elementType").value =
+            item.type;
+
+
+        if (item.type === "polaroid") {
+
+            $("polaroidImage").value =
+                item.image || "";
+
+            $("polaroidAlt").value =
+                item.alt || "";
+
+            $("polaroidText").value =
+                item.text || "";
+        }
+
+
+        if (item.type === "sticky") {
+
+            $("stickyText").value =
+                item.text || "";
+        }
+
+
+        if (item.type === "sticky-fecha") {
+
+            $("stickyFechaText").value =
+                item.text || "";
+
+            $("stickyFechaDate").value =
+                item.date || "";
+        }
+
+
+        if (item.type === "sticky-png") {
+
+            $("stickyPngImage").value =
+                item.image || "";
+
+            $("stickyPngAlt").value =
+                item.alt || "";
+        }
+
+
+        if (item.type === "ticket") {
+
+            $("ticketImage").value =
+                item.image || "";
+
+            $("ticketAlt").value =
+                item.alt || "";
+        }
+
+
+        if (item.type === "png-frame") {
+
+            $("pngFrameImage").value =
+                item.image || "";
+
+            $("pngFrameAlt").value =
+                item.alt || "";
+
+            $("pngFrameScale").value =
+                item.scale || "1.4";
+        }
+
+
+        if (item.type === "diary") {
+
+            $("diaryText").value =
+                item.text || "";
+        }
+
+
+        if (item.type === "film-strip") {
+
+            $("filmName").value =
+                item.name || "";
+
+
+            const images =
+                item.images || [];
+
+
+            $("filmImage1").value =
+                images[0]?.image || "";
+
+            $("filmAlt1").value =
+                images[0]?.alt || "";
+
+
+            $("filmImage2").value =
+                images[1]?.image || "";
+
+            $("filmAlt2").value =
+                images[1]?.alt || "";
+
+
+            $("filmImage3").value =
+                images[2]?.image || "";
+
+            $("filmAlt3").value =
+                images[2]?.alt || "";
+        }
+
+
+        updateTypeFields();
+
+
+        $("addButton").textContent =
+            "Guardar cambios";
+
+
+        $("cancelEditButton")
+            .classList.remove("hidden");
+
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }
+
+
+    /*
+     * ============================================================
+     * INFORMACIÓN DE ELEMENTOS
+     * ============================================================
+     */
+
+    function getItemDescription(item) {
+
+        if (item.type === "blank") {
+
+            return "Elige el tipo y completa los datos al editar.";
+        }
+
+
+        if (item.type === "sticky-png") {
+
+            return (
+                item.alt ||
+                "(sin ALT)"
+            );
+        }
+
+
+        if (item.type === "polaroid") {
+
+            return (
+                item.text ||
+                "(sin texto)"
+            );
+        }
+
+
+        if (item.type === "sticky") {
+
+            return (
+                item.text ||
+                "(sin texto)"
+            );
+        }
+
+
+        if (item.type === "sticky-fecha") {
+
+            return (
+                item.date ||
+                "(sin fecha)"
+            );
+        }
+
+
+        if (item.type === "ticket") {
+
+            return (
+                item.alt ||
+                "(sin ALT)"
+            );
+        }
+
+
+        if (item.type === "png-frame") {
+
+            return (
+                item.alt ||
+                "(sin ALT)"
+            );
+        }
+
+
+        if (item.type === "diary") {
+
+            const firstText =
+                normalizeLineEndings(
+                    item.text || ""
+                )
+                    .split("\n")
+                    .map(normalizeDiaryLine)
+                    .find(function(line) {
+
+                        return (
+                            line &&
+                            !isDiarySeparator(line)
+                        );
+
+                    });
+
+
+            return (
+                firstText ||
+                "(vacío)"
+            );
+        }
+
+
+        if (item.type === "film-strip") {
+
+            return (
+                item.name ||
+                "Sin nombre"
+            );
+        }
+
+
+        return "";
+    }
+
+
+    function getItemTitle(item) {
+
+        const names = {
+
+            "polaroid":
+                "Polaroid",
+
+            "sticky":
+                "Sticky Note",
+
+            "sticky-fecha":
+                "Sticky Note + Fecha",
+
+            "sticky-png":
+                "Sticky PNG",
+
+            "ticket":
+                "Ticket",
+
+            "png-frame":
+                "PNG Frame",
+
+            "diary":
+                "Diary Notes",
+
+            "film-strip":
+                "Film Strip",
+
+            "blank":
+                "Nuevo elemento (vacío)"
+        };
+
+
+        return (
+            names[item.type] ||
+            item.type
+        );
+    }
+
+
+    /*
+     * ============================================================
+     * GENERACIÓN HTML
+     * ============================================================
+     */
+
+    function elementToHtml(item) {
+
+        /*
+         * Un blank NO genera ningún <li>.
+         */
+        if (item.type === "blank") {
+            return "";
+        }
+
+
+        if (item.type === "polaroid") {
+
+            const text =
+                capitalizeWords(
+                    item.text || ""
+                );
+
+
+            return (
+                "<li>\n" +
+                "    <p><img src=\"" +
+                escapeHtmlAttribute(item.image) +
+                "\" alt=\"" +
+                escapeHtmlAttribute(item.alt) +
+                "\"></p>\n" +
+                "    <ul><li>" +
+                escapeHtmlText(text) +
+                "</li></ul>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "sticky") {
+
+            const text =
+                capitalizeWords(
+                    item.text || ""
+                );
+
+
+            return (
+                "<li>\n" +
+                "    <p>" +
+                escapeHtmlText(text) +
+                "</p>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "sticky-fecha") {
+
+            const text =
+                capitalizeWords(
+                    item.text || ""
+                );
+
+
+            return (
+                "<li>\n" +
+                "    <p>" +
+                escapeHtmlText(text) +
+                "</p>\n" +
+                "    <ul><li>" +
+                escapeHtmlText(
+                    item.date || ""
+                ) +
+                "</li></ul>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "sticky-png") {
+
+            return (
+                "<li>\n" +
+                "    <img src=\"" +
+                escapeHtmlAttribute(item.image) +
+                "\" class=\"sticky-drawing\" alt=\"" +
+                escapeHtmlAttribute(item.alt) +
+                "\">\n" +
+                "    <p></p>\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "ticket") {
+
+            return (
+                "<li class=\"ticket-frame\">\n" +
+                "    <img src=\"" +
+                escapeHtmlAttribute(item.image) +
+                "\" alt=\"" +
+                escapeHtmlAttribute(item.alt) +
+                "\">\n" +
+                "</li>"
+            );
+        }
+
+
+        if (item.type === "png-frame") {
+
+            return (
+                "<li class=\"png-frame\" style=\"--png-scale: " +
+                escapeHtmlAttribute(
+                    item.scale || "1.4"
+                ) +
+                ";\">\n" +
+                "    <img src=\"" +
+                escapeHtmlAttribute(item.image) +
+                "\" alt=\"" +
+                escapeHtmlAttribute(item.alt) +
+                "\">\n" +
+                "</li>"
+            );
+        }
+
+
+        /*
+         * ========================================================
+         * DIARY
+         * ========================================================
+         */
+
+        if (item.type === "diary") {
+
+            const diaryContent =
+                formatDiaryToHtml(
+                    item.text || ""
+                );
+
+
+            return (
+                "<li>\n" +
+                "    <img src=\"data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=\" alt=\"Diario\"" +
+                (
+                    diaryContent
+                        ? "\n" +
+                          diaryContent
+                            .split("\n")
+                            .map(function(line) {
+
+                                return (
+                                    "    " +
+                                    line
+                                );
+
+                            })
+                            .join("\n")
+                        : ""
+                ) +
+                "\n</li>"
+            );
+        }
+
+
+        if (item.type === "film-strip") {
+
+            const images =
+                item.images || [];
+
+
+            const frames =
+                images
+                    .filter(function(image) {
+
+                        return image.image;
+
+                    })
+                    .map(function(image) {
+
+                        return (
+                            "    <div class=\"film-frame\">\n" +
+                            "        <img src=\"" +
+                            escapeHtmlAttribute(
+                                image.image
+                            ) +
+                            "\" alt=\"" +
+                            escapeHtmlAttribute(
+                                image.alt
+                            ) +
+                            "\">\n" +
+                            "    </div>"
+                        );
+
+                    })
+                    .join("\n");
+
+
+            return (
+                "<li class=\"film-strip\">\n" +
+                frames +
+                "\n</li>"
+            );
+        }
+
+
+        return "";
+    }
+
+
+    function generateOutput() {
+
+        const elementHtml =
+            items
+                .map(function(item) {
+
+                    return elementToHtml(item);
+
+                })
+                .filter(function(html) {
+
+                    return html !== "";
+
+                })
+                .join("\n");
+
+
+        const html =
+            "<section class=\"tiny-photos\">\n" +
+            "<ul>\n" +
+            elementHtml +
+            "\n</ul>\n" +
+            "</section>";
+
+
+        $("output").value =
+            html;
+    }
+
+
+    /*
+     * ============================================================
+     * LOCAL STORAGE
+     * ============================================================
+     */
+
+    function saveItems() {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(items)
+        );
+    }
+
+
+    function loadItems() {
+
+        try {
+
+            const stored =
+                localStorage.getItem(
+                    STORAGE_KEY
+                );
+
+
+            if (!stored) {
+
+                items = [];
+
+                return;
+            }
+
+
+            const parsed =
+                JSON.parse(stored);
+
+
+            items =
+                Array.isArray(parsed)
+                    ? parsed
+                    : [];
+
+        } catch (error) {
+
+            items = [];
+        }
+    }
+
+
+    /*
+     * ============================================================
+     * RENDER LISTA
+     * ============================================================
+     */
+
+    function renderItems() {
+
+        const list =
+            $("itemsList");
+
+
+        list.innerHTML = "";
+
+
+        if (!items.length) {
+
+            const empty =
+                document.createElement("div");
+
+
+            empty.className =
+                "empty";
+
+
+            empty.textContent =
+                "No hay elementos añadidos.";
+
+
+            list.appendChild(empty);
+
+            return;
+        }
+
+
+        items.forEach(function(item, index) {
+
+            /*
+             * Wrapper:
+             * contiene el elemento y el + externo.
+             */
+            const entry =
+                document.createElement("div");
+
+
+            entry.className =
+                "element-entry";
+
+
+            entry.dataset.index =
+                String(index);
+
+
+            entry._item =
+                item;
+
+
+            /*
+             * ELEMENTO VISUAL
+             */
+
+            const row =
+                document.createElement("div");
+
+
+            row.className =
+                "item";
+
+
+            if (item.type === "blank") {
+
+                row.classList.add(
+                    "blank-item"
+                );
+
+            }
+
+
+            row._item =
+                item;
+
+
+            /*
+             * INFORMACIÓN
+             */
+
+            const info =
+                document.createElement("div");
+
+
+            info.className =
+                "item-info";
+
+
+            const title =
+                document.createElement("div");
+
+
+            title.className =
+                "item-title";
+
+
+            title.textContent =
+                (index + 1) +
+                ". " +
+                getItemTitle(item);
+
+
+            const description =
+                document.createElement("div");
+
+
+            description.className =
+                "item-description";
+
+
+            description.textContent =
+                getItemDescription(item);
+
+
+            info.appendChild(title);
+            info.appendChild(description);
+
+
+            /*
+             * ACCIONES
+             */
+
+            const actions =
+                document.createElement("div");
+
+
+            actions.className =
+                "item-actions";
+
+
+            /*
+             * SUBIR
+             */
+
+            const up =
+                document.createElement("button");
+
+
+            up.type = "button";
+
+            up.textContent = "↑";
+
+            up.title = "Subir";
+
+            up.setAttribute(
+                "aria-label",
+                "Subir"
+            );
+
+
+            /*
+             * BAJAR
+             */
+
+            const down =
+                document.createElement("button");
+
+
+            down.type = "button";
+
+            down.textContent = "↓";
+
+            down.title = "Bajar";
+
+            down.setAttribute(
+                "aria-label",
+                "Bajar"
+            );
+
+
+            /*
+             * EDITAR
+             */
+
+            const edit =
+                document.createElement("button");
+
+
+            edit.type = "button";
+
+            edit.textContent = "✎";
+
+            edit.title = "Editar";
+
+            edit.setAttribute(
+                "aria-label",
+                "Editar"
+            );
+
+
+            /*
+             * DUPLICAR
+             */
+
+            const duplicate =
+                document.createElement("button");
+
+
+            duplicate.type = "button";
+
+            duplicate.textContent = "⧉";
+
+            duplicate.title = "Duplicar";
+
+            duplicate.setAttribute(
+                "aria-label",
+                "Duplicar"
+            );
+
+
+            /*
+             * ELIMINAR
+             */
+
+            const remove =
+                document.createElement("button");
+
+
+            remove.type = "button";
+
+            remove.textContent = "🗑";
+
+            remove.title = "Eliminar";
+
+            remove.setAttribute(
+                "aria-label",
+                "Eliminar"
+            );
+
+            remove.className =
+                "delete-button";
+
+
+            /*
+             * ====================================================
+             * SUBIR
+             * ====================================================
+             */
+
+            up.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (currentIndex > 0) {
+
+                        const temp =
+                            items[
+                                currentIndex - 1
+                            ];
+
+
+                        items[
+                            currentIndex - 1
+                        ] =
+                            items[
+                                currentIndex
+                            ];
+
+
+                        items[
+                            currentIndex
+                        ] =
+                            temp;
+
+
+                        saveItems();
+
+                        renderItems();
+
+                        generateOutput();
+                    }
+
+                }
+            );
+
+
+            /*
+             * ====================================================
+             * BAJAR
+             * ====================================================
+             */
+
+            down.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (
+                        currentIndex >= 0 &&
+                        currentIndex <
+                            items.length - 1
+                    ) {
+
+                        const temp =
+                            items[
+                                currentIndex + 1
+                            ];
+
+
+                        items[
+                            currentIndex + 1
+                        ] =
+                            items[
+                                currentIndex
+                            ];
+
+
+                        items[
+                            currentIndex
+                        ] =
+                            temp;
+
+
+                        saveItems();
+
+                        renderItems();
+
+                        generateOutput();
+                    }
+
+                }
+            );
+
+
+            /*
+             * ====================================================
+             * EDITAR
+             * ====================================================
+             */
+
+            edit.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (currentIndex < 0) {
+                        return;
+                    }
+
+
+                    /*
+                     * MUY IMPORTANTE:
+                     * guardamos el índice real.
+                     *
+                     * Si es blank:
+                     * items[currentIndex] será sustituido
+                     * al guardar.
+                     */
+                    editingIndex =
+                        currentIndex;
+
+
+                    loadItemIntoForm(
+                        currentItem
+                    );
+
+
+                    $("addButton").textContent =
+                        "Guardar cambios";
+
+
+                    $("cancelEditButton")
+                        .classList.remove(
+                            "hidden"
+                        );
+
+
+                    setStatus(
+                        "formStatus",
+                        currentItem.type === "blank"
+                            ? "Elige ahora el tipo de elemento y completa sus datos."
+                            : "Editando elemento."
+                    );
+
+                }
+            );
+
+
+            /*
+             * ====================================================
+             * DUPLICAR
+             * ====================================================
+             */
+
+            duplicate.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (currentIndex < 0) {
+                        return;
+                    }
+
+
+                    const copy =
+                        JSON.parse(
+                            JSON.stringify(
+                                currentItem
+                            )
+                        );
+
+
+                    items.splice(
+                        currentIndex + 1,
+                        0,
+                        copy
+                    );
+
+
+                    saveItems();
+
+                    renderItems();
+
+                    generateOutput();
+
+                }
+            );
+
+
+            /*
+             * ====================================================
+             * ELIMINAR
+             * ====================================================
+             */
+
+            remove.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (currentIndex < 0) {
+                        return;
+                    }
+
+
+                    items.splice(
+                        currentIndex,
+                        1
+                    );
+
+
+                    /*
+                     * Si se estaba editando ese elemento,
+                     * salimos de edición.
+                     */
+                    if (
+                        editingIndex ===
+                        currentIndex
+                    ) {
+
+                        clearForm();
+
+                    } else if (
+                        editingIndex >
+                        currentIndex
+                    ) {
+
+                        editingIndex--;
+                    }
+
+
+                    saveItems();
+
+                    renderItems();
+
+                    generateOutput();
+
+                }
+            );
+
+
+            actions.appendChild(up);
+            actions.appendChild(down);
+            actions.appendChild(edit);
+            actions.appendChild(duplicate);
+            actions.appendChild(remove);
+
+
+            row.appendChild(info);
+            row.appendChild(actions);
+
+
+            /*
+             * ====================================================
+             * + EXTERNO
+             * ====================================================
+             */
+
+            const insertAfter =
+                document.createElement("button");
+
+
+            insertAfter.type =
+                "button";
+
+
+            insertAfter.className =
+                "insert-after";
+
+
+            insertAfter.textContent =
+                "+";
+
+
+            insertAfter.title =
+                "Añadir elemento después";
+
+
+            insertAfter.setAttribute(
+                "aria-label",
+                "Añadir elemento después"
+            );
+
+
+            insertAfter.addEventListener(
+                "pointerdown",
+                function(event) {
+
+                    event.stopPropagation();
+
+                }
+            );
+
+
+            insertAfter.addEventListener(
+                "click",
+                function(event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    const currentItem =
+                        entry._item;
+
+
+                    const currentIndex =
+                        items.indexOf(
+                            currentItem
+                        );
+
+
+                    if (currentIndex < 0) {
+                        return;
+                    }
+
+
+                    /*
+                     * BLANK EXACTAMENTE DESPUÉS
+                     * DEL ELEMENTO PULSADO.
+                     */
+                    items.splice(
+                        currentIndex + 1,
+                        0,
+                        {
+                            type: "blank"
+                        }
+                    );
+
+
+                    saveItems();
+
+                    renderItems();
+
+                    generateOutput();
+
+
+                    setStatus(
+                        "formStatus",
+                        "Elemento vacío añadido. Pulsa ✎ para editarlo."
+                    );
+
+                }
+            );
+
+
+            entry.appendChild(row);
+
+            entry.appendChild(insertAfter);
+
+
+            setupDrag(entry);
+
+
+            list.appendChild(entry);
+
+        });
+    }
+
+
+    function setStatus(id, message) {
+
+        $(id).textContent =
+            message || "";
+    }
+
+
+    /*
+     * ============================================================
+     * DRAG & DROP
+     * ============================================================
+     *
+     * El problema de la versión anterior estaba en que el DOM
+     * mezclaba .item con el botón +.
+     *
+     * Ahora el elemento que se arrastra es SIEMPRE:
+     *
+     * .element-entry
+     *
+     * y dentro lleva:
+     *
+     * .item
+     * +
+     *
+     * El placeholder ocupa TODO el entry.
+     *
+     * Esto permite abrir hueco tanto hacia arriba como hacia abajo.
+     */
+
+
+    function setupDrag(entry) {
+
+        entry.addEventListener(
+            "pointerdown",
+            function(event) {
+
+                if (event.button !== 0) {
+                    return;
+                }
+
+
+                /*
+                 * Los controles nunca empiezan un drag.
+                 */
+                if (
+                    event.target.closest("button") ||
+                    event.target.closest("input") ||
+                    event.target.closest("textarea") ||
+                    event.target.closest("select")
+                ) {
+                    return;
+                }
+
+
+                const rect =
+                    entry.getBoundingClientRect();
+
+
+                dragState = {
+
+                    entry: entry,
+
+                    row:
+                        entry.querySelector(".item"),
+
+                    pointerId:
+                        event.pointerId,
+
+                    startX:
+                        event.clientX,
+
+                    startY:
+                        event.clientY,
+
+                    offsetX:
+                        event.clientX -
+                        rect.left,
+
+                    offsetY:
+                        event.clientY -
+                        rect.top,
+
+                    originalNextSibling:
+                        entry.nextElementSibling,
+
+                    placeholder:
+                        null,
+
+                    dragging:
+                        false
+                };
+
+
+                try {
+
+                    entry.setPointerCapture(
+                        event.pointerId
+                    );
+
+                } catch (error) {
+                    /* Nada */
+                }
+
+            }
+        );
+
+
+        entry.addEventListener(
+            "pointermove",
+            function(event) {
+
+                if (!dragState) {
+                    return;
+                }
+
+
+                if (
+                    event.pointerId !==
+                    dragState.pointerId
+                ) {
+                    return;
+                }
+
+
+                const dx =
+                    event.clientX -
+                    dragState.startX;
+
+
+                const dy =
+                    event.clientY -
+                    dragState.startY;
+
+
+                if (
+                    !dragState.dragging
+                ) {
+
+                    if (
+                        Math.sqrt(
+                            dx * dx +
+                            dy * dy
+                        ) < 5
+                    ) {
+
+                        return;
+                    }
+
+
+                    startDragging(
+                        dragState,
+                        event
+                    );
+                }
+
+
+                moveDragging(
+                    dragState,
+                    event
+                );
+
+            }
+        );
+
+
+        entry.addEventListener(
+            "pointerup",
+            function(event) {
+
+                if (!dragState) {
+                    return;
+                }
+
+
+                if (
+                    event.pointerId !==
+                    dragState.pointerId
+                ) {
+                    return;
+                }
+
+
+                if (
+                    dragState.dragging
+                ) {
+
+                    finishDragging(
+                        dragState
+                    );
+
+                } else {
+
+                    dragState = null;
+
+                }
+
+            }
+        );
+
+
+        entry.addEventListener(
+            "pointercancel",
+            function() {
+
+                if (!dragState) {
+                    return;
+                }
+
+
+                cancelDragging(
+                    dragState
+                );
+
+
+                dragState = null;
+
+            }
+        );
+    }
+
+
+    function startDragging(
+        state,
+        event
+    ) {
+
+        state.dragging = true;
+
+
+        const entry =
+            state.entry;
+
+
+        const row =
+            state.row;
+
+
+        const rect =
+            entry.getBoundingClientRect();
+
+
+        const placeholder =
+            document.createElement(
+                "div"
+            );
+
+
+        placeholder.className =
+            "drag-placeholder";
+
+
+        placeholder.style.height =
+            rect.height + "px";
+
+
+        state.placeholder =
+            placeholder;
+
+
+        /*
+         * El placeholder ocupa exactamente
+         * el lugar original.
+         */
+        entry.parentNode.insertBefore(
+            placeholder,
+            entry
+        );
+
+
+        /*
+         * El wrapper se vuelve flotante.
+         */
+        row.classList.add(
+            "dragging"
+        );
+
+
+        document.body.classList.add(
+            "drag-active"
+        );
+
+
+        entry.style.position =
+            "fixed";
+
+
+        entry.style.left =
+            (
+                event.clientX -
+                state.offsetX
+            ) + "px";
+
+
+        entry.style.top =
+            (
+                event.clientY -
+                state.offsetY
+            ) + "px";
+
+
+        entry.style.width =
+            rect.width + "px";
+
+
+        entry.style.margin =
+            "0";
+
+
+        entry.style.pointerEvents =
+            "none";
+
+
+        entry.style.zIndex =
+            "1000";
+
+
+        updatePlaceholder(
+            event.clientY,
+            state
+        );
+    }
+
+
+    function moveDragging(
+        state,
+        event
+    ) {
+
+        const entry =
+            state.entry;
+
+
+        entry.style.left =
+            (
+                event.clientX -
+                state.offsetX
+            ) + "px";
+
+
+        entry.style.top =
+            (
+                event.clientY -
+                state.offsetY
+            ) + "px";
+
+
+        updatePlaceholder(
+            event.clientY,
+            state
+        );
+    }
+
+
+    function getDragEntries(state) {
+
+        const list =
+            $("itemsList");
+
+
+        return Array.from(
+            list.children
+        ).filter(function(element) {
+
+            return (
+                element.classList.contains(
+                    "element-entry"
+                ) &&
+                element !== state.entry
+            );
+
+        });
+    }
+
+
+    function updatePlaceholder(
+        clientY,
+        state
+    ) {
+
+        const list =
+            $("itemsList");
+
+
+        const placeholder =
+            state.placeholder;
+
+
+        if (!placeholder) {
+            return;
+        }
+
+
+        const entries =
+            getDragEntries(state);
+
+
+        let target =
+            null;
+
+
+        /*
+         * BUSCAMOS el primer elemento cuyo centro
+         * queda por debajo del puntero.
+         *
+         * Así funciona en las dos direcciones.
+         */
+        for (
+            let i = 0;
+            i < entries.length;
+            i++
+        ) {
+
+            const entry =
+                entries[i];
+
+
+            const rect =
+                entry.getBoundingClientRect();
+
+
+            const midpoint =
+                rect.top +
+                rect.height / 2;
+
+
+            if (
+                clientY <
+                midpoint
+            ) {
+
+                target =
+                    entry;
+
+                break;
+            }
+        }
+
+
+        /*
+         * Si no encontramos ninguno,
+         * el destino es el final.
+         */
+        if (target) {
+
+            if (
+                placeholder.nextElementSibling !==
+                target
+            ) {
+
+                const firstRects =
+                    entries.map(
+                        function(entry) {
+
+                            return [
+                                entry,
+                                entry.getBoundingClientRect()
+                                    .top
+                            ];
+
+                        }
+                    );
+
+
+                list.insertBefore(
+                    placeholder,
+                    target
+                );
+
+
+                animateRows(
+                    firstRects
+                );
+            }
+
+        } else {
+
+            /*
+             * AL FINAL.
+             *
+             * Esto es lo que permite bajar hasta
+             * el último elemento y abrir hueco.
+             */
+            if (
+                list.lastElementChild !==
+                placeholder
+            ) {
+
+                const firstRects =
+                    entries.map(
+                        function(entry) {
+
+                            return [
+                                entry,
+                                entry.getBoundingClientRect()
+                                    .top
+                            ];
+
+                        }
+                    );
+
+
+                list.appendChild(
+                    placeholder
+                );
+
+
+                animateRows(
+                    firstRects
+                );
+            }
+        }
+    }
+
+
+    function animateRows(
+        firstRects
+    ) {
+
+        firstRects.forEach(
+            function(pair) {
+
+                const row =
+                    pair[0];
+
+
+                const oldTop =
+                    pair[1];
+
+
+                const newTop =
+                    row.getBoundingClientRect()
+                        .top;
+
+
+                const delta =
+                    oldTop -
+                    newTop;
+
+
+                if (!delta) {
+                    return;
+                }
+
+
+                row.animate(
+                    [
+                        {
+                            transform:
+                                "translateY(" +
+                                delta +
+                                "px)"
+                        },
+
+                        {
+                            transform:
+                                "translateY(0)"
+                        }
+                    ],
+                    {
+                        duration: 160,
+                        easing:
+                            "cubic-bezier(.2,.8,.2,1)"
+                    }
+                );
+
+            }
+        );
+    }
+
+
+    function clearDragStyles(state) {
+
+        const entry =
+            state.entry;
+
+
+        const row =
+            state.row;
+
+
+        row.classList.remove(
+            "dragging"
+        );
+
+
+        entry.style.position =
+            "";
+
+        entry.style.left =
+            "";
+
+        entry.style.top =
+            "";
+
+        entry.style.width =
+            "";
+
+        entry.style.margin =
+            "";
+
+        entry.style.pointerEvents =
+            "";
+
+        entry.style.zIndex =
+            "";
+
+
+        document.body.classList.remove(
+            "drag-active"
+        );
+    }
+
+
+    function finishDragging(state) {
+
+        if (!state.dragging) {
+            return;
+        }
+
+
+        const entry =
+            state.entry;
+
+
+        const row =
+            state.row;
+
+
+        const placeholder =
+            state.placeholder;
+
+
+        if (!placeholder) {
+
+            cancelDragging(
+                state
+            );
+
+            return;
+        }
+
+
+        /*
+         * El hueco visible es la posición final.
+         */
+        const targetRect =
+            placeholder.getBoundingClientRect();
+
+
+        const currentRect =
+            entry.getBoundingClientRect();
+
+
+        /*
+         * Sustituimos el hueco por el elemento.
+         */
+        placeholder.replaceWith(
+            entry
+        );
+
+
+        const deltaX =
+            targetRect.left -
+            currentRect.left;
+
+
+        const deltaY =
+            targetRect.top -
+            currentRect.top;
+
+
+        /*
+         * Quitamos primero la posición fixed
+         * para que vuelva al flujo normal.
+         */
+        clearDragStyles(
+            state
+        );
+
+
+        /*
+         * Animación final.
+         */
+        if (
+            Math.abs(deltaX) > 1 ||
+            Math.abs(deltaY) > 1
+        ) {
+
+            entry.animate(
+                [
+                    {
+                        transform:
+                            "translate(" +
+                            deltaX +
+                            "px, " +
+                            deltaY +
+                            "px)"
+                    },
+
+                    {
+                        transform:
+                            "translate(0, 0)"
+                    }
+                ],
+                {
+                    duration: 220,
+                    easing:
+                        "cubic-bezier(.2,.8,.2,1)"
+                }
+            );
+
+        }
+
+
+        /*
+         * MUY IMPORTANTE:
+         *
+         * reconstruimos el array usando SOLO
+         * los .element-entry reales.
+         */
+        const domEntries =
+            Array.from(
+                $("itemsList").children
+            ).filter(function(element) {
+
+                return element.classList.contains(
+                    "element-entry"
+                );
+
+            });
+
+
+        items =
+            domEntries.map(
+                function(element) {
+
+                    return element._item;
+
+                }
+            );
+
+
+        saveItems();
+
+        generateOutput();
+
+
+        /*
+         * Esperamos un poco antes de volver
+         * a renderizar para dejar terminar
+         * la animación.
+         */
+        setTimeout(
+            function() {
+
+                renderItems();
+
+                saveItems();
+
+                generateOutput();
+
+            },
+            230
+        );
+
+
+        dragState = null;
+    }
+
+
+    function cancelDragging(state) {
+
+        const entry =
+            state.entry;
+
+
+        const placeholder =
+            state.placeholder;
+
+
+        if (
+            placeholder &&
+            placeholder.parentNode
+        ) {
+
+            placeholder.remove();
+
+        }
+
+
+        if (
+            state.originalNextSibling &&
+            state.originalNextSibling.parentNode
+        ) {
+
+            state.originalNextSibling
+                .parentNode
+                .insertBefore(
+                    entry,
+                    state.originalNextSibling
+                );
+
+        } else {
+
+            $("itemsList")
+                .appendChild(entry);
+
+        }
+
+
+        clearDragStyles(
+            state
+        );
+    }
+
+
+    window.addEventListener(
+        "blur",
+        function() {
+
+            if (!dragState) {
+                return;
+            }
+
+
+            cancelDragging(
+                dragState
+            );
+
+
+            dragState = null;
+
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * IMPORTACIÓN
+     * ============================================================
+     */
+
+    function findTinyPhotosList(doc) {
+
+        const section =
+            doc.querySelector(
+                "section.tiny-photos"
+            );
+
+
+        if (section) {
+
+            const directUl =
+                Array.from(
+                    section.children
+                ).find(
+                    function(element) {
+
+                        return (
+                            element.tagName
+                                .toLowerCase() ===
+                            "ul"
+                        );
+
+                    }
+                );
+
+
+            if (directUl) {
+                return directUl;
+            }
+
+
+            const descendantUl =
+                section.querySelector(
+                    "ul"
+                );
+
+
+            if (descendantUl) {
+                return descendantUl;
+            }
+        }
+
+
+        const firstUl =
+            doc.querySelector(
+                "ul"
+            );
+
+
+        return firstUl || null;
+    }
+
+
+    function importPolaroid(li) {
+
+        const directChildren =
+            Array.from(
+                li.children
+            );
+
+
+        const p =
+            directChildren.find(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "p"
+                    );
+
+                }
+            );
+
+
+        const ul =
+            directChildren.find(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "ul"
+                    );
+
+                }
+            );
+
+
+        if (!p || !ul) {
+            return null;
+        }
+
+
+        const img =
+            p.querySelector(
+                "img"
+            );
+
+
+        if (!img) {
+            return null;
+        }
+
+
+        const hasImageInP =
+            img.parentElement === p;
+
+
+        if (!hasImageInP) {
+            return null;
+        }
+
+
+        const textLi =
+            ul.querySelector(
+                "li"
+            );
+
+
+        return {
+
+            type: "polaroid",
+
+            image:
+                img.getAttribute("src") ||
+                "",
+
+            alt:
+                img.getAttribute("alt") ||
+                "",
+
+            text:
+                textLi
+                    ? textLi.textContent
+                    : ""
+        };
+    }
+
+
+    function importFilmStrip(li) {
+
+        if (
+            !li.classList.contains(
+                "film-strip"
+            )
+        ) {
+            return null;
+        }
+
+
+        const frames =
+            Array.from(
+                li.querySelectorAll(
+                    ":scope > .film-frame"
+                )
+            );
+
+
+        const images =
+            frames.map(
+                function(frame) {
+
+                    const img =
+                        frame.querySelector(
+                            "img"
+                        );
+
+
+                    return {
+
+                        image:
+                            img
+                                ? img.getAttribute(
+                                    "src"
+                                ) || ""
+                                : "",
+
+                        alt:
+                            img
+                                ? img.getAttribute(
+                                    "alt"
+                                ) || ""
+                                : ""
+                    };
+
+                }
+            );
+
+
+        return {
+
+            type:
+                "film-strip",
+
+            name:
+                "",
+
+            images:
+                images
+        };
+    }
+
+
+    function importTicket(li) {
+
+        if (
+            !li.classList.contains(
+                "ticket-frame"
+            )
+        ) {
+            return null;
+        }
+
+
+        const img =
+            li.querySelector(
+                ":scope > img"
+            );
+
+
+        if (!img) {
+            return null;
+        }
+
+
+        return {
+
+            type:
+                "ticket",
+
+            image:
+                img.getAttribute(
+                    "src"
+                ) || "",
+
+            alt:
+                img.getAttribute(
+                    "alt"
+                ) || ""
+        };
+    }
+
+
+    function importPngFrame(li) {
+
+        if (
+            !li.classList.contains(
+                "png-frame"
+            )
+        ) {
+            return null;
+        }
+
+
+        const img =
+            li.querySelector(
+                ":scope > img"
+            );
+
+
+        if (!img) {
+            return null;
+        }
+
+
+        let scale =
+            "1.4";
+
+
+        const style =
+            li.getAttribute(
+                "style"
+            ) || "";
+
+
+        const match =
+            style.match(
+                /--png-scale\s*:\s*([^;]+)/
+            );
+
+
+        if (match) {
+
+            scale =
+                match[1].trim();
+
+        }
+
+
+        return {
+
+            type:
+                "png-frame",
+
+            image:
+                img.getAttribute(
+                    "src"
+                ) || "",
+
+            alt:
+                img.getAttribute(
+                    "alt"
+                ) || "",
+
+            scale:
+                scale
+        };
+    }
+
+
+    function importStickyPng(li) {
+
+        const img =
+            li.querySelector(
+                ":scope > img.sticky-drawing"
+            );
+
+
+        if (!img) {
+            return null;
+        }
+
+
+        return {
+
+            type:
+                "sticky-png",
+
+            image:
+                img.getAttribute(
+                    "src"
+                ) || "",
+
+            alt:
+                img.getAttribute(
+                    "alt"
+                ) || ""
+        };
+    }
+
+
+    function importStickyFecha(li) {
+
+        const directChildren =
+            Array.from(
+                li.children
+            );
+
+
+        const p =
+            directChildren.find(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "p"
+                    );
+
+                }
+            );
+
+
+        const ul =
+            directChildren.find(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "ul"
+                    );
+
+                }
+            );
+
+
+        if (!p || !ul) {
+            return null;
+        }
+
+
+        if (p.querySelector("img")) {
+            return null;
+        }
+
+
+        const dateLi =
+            ul.querySelector(
+                "li"
+            );
+
+
+        return {
+
+            type:
+                "sticky-fecha",
+
+            text:
+                p.textContent,
+
+            date:
+                dateLi
+                    ? dateLi.textContent
+                    : ""
+        };
+    }
+
+
+    function importSticky(li) {
+
+        const directChildren =
+            Array.from(
+                li.children
+            );
+
+
+        const p =
+            directChildren.find(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "p"
+                    );
+
+                }
+            );
+
+
+        if (!p) {
+            return null;
+        }
+
+
+        if (p.querySelector("img")) {
+            return null;
+        }
+
+
+        const hasUl =
+            directChildren.some(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "ul"
+                    );
+
+                }
+            );
+
+
+        if (hasUl) {
+            return null;
+        }
+
+
+        return {
+
+            type:
+                "sticky",
+
+            text:
+                p.textContent
+        };
+    }
+
+
+    function importLi(li) {
+
+        /*
+         * 1. Film Strip
+         */
+
+        let result =
+            importFilmStrip(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 2. Ticket
+         */
+
+        result =
+            importTicket(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 3. PNG Frame
+         */
+
+        result =
+            importPngFrame(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 4. Sticky PNG
+         */
+
+        result =
+            importStickyPng(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 5. Polaroid
+         */
+
+        result =
+            importPolaroid(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 6. Diary
+         */
+
+        const hasDirectHr =
+            Array.from(
+                li.children
+            ).some(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "hr"
+                    );
+
+                }
+            );
+
+
+        const hasDiaryMarker =
+            Array.from(
+                li.children
+            ).some(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "img" &&
+                        element.getAttribute(
+                            "alt"
+                        ) === "Diario"
+                    );
+
+                }
+            );
+
+
+        if (
+            hasDirectHr ||
+            hasDiaryMarker
+        ) {
+
+            result =
+                importDiary(li);
+
+
+            if (result) {
+                return result;
+            }
+        }
+
+
+        /*
+         * 7. Sticky + fecha
+         */
+
+        result =
+            importStickyFecha(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 8. Sticky normal
+         */
+
+        result =
+            importSticky(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        /*
+         * 9. Fallback Diary
+         */
+
+        result =
+            importDiary(li);
+
+
+        if (result) {
+            return result;
+        }
+
+
+        return null;
+    }
+
+
+    function importHtml() {
+
+        const source =
+            $("importInput").value.trim();
+
+
+        if (!source) {
+
+            setStatus(
+                "importStatus",
+                "Pega primero el HTML que quieres importar."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const parser =
+                new DOMParser();
+
+
+            const doc =
+                parser.parseFromString(
+                    source,
+                    "text/html"
+                );
+
+
+            /*
+             * Primero intentamos la lógica original:
+             * section.tiny-photos -> ul
+             * o primer ul.
+             */
+            const ul =
+                findTinyPhotosList(doc);
+
+
+            let lis = [];
+
+
+            if (ul) {
+
+                lis =
+                    Array.from(
+                        ul.children
+                    ).filter(
+                        function(element) {
+
+                            return (
+                                element.tagName
+                                    .toLowerCase() ===
+                                "li"
+                            );
+
+                        }
+                    );
+
+            } else {
+
+                /*
+                 * MEJORA DE IMPORTACIÓN:
+                 *
+                 * Si se pegaron directamente elementos:
+                 *
+                 * <li>...</li>
+                 * <li>...</li>
+                 *
+                 * DOMParser los deja directamente
+                 * dentro de body.
+                 */
+                lis =
+                    Array.from(
+                        doc.body.children
+                    ).filter(
+                        function(element) {
+
+                            return (
+                                element.tagName
+                                    .toLowerCase() ===
+                                "li"
+                            );
+
+                        }
+                    );
+            }
+
+
+            if (!lis.length) {
+
+                setStatus(
+                    "importStatus",
+                    "No se encontraron elementos <li> para importar."
+                );
+
+                return;
+            }
+
+
+            const imported = [];
+
+
+            lis.forEach(
+                function(li) {
+
+                    const item =
+                        importLi(li);
+
+
+                    if (item) {
+                        imported.push(item);
+                    }
+
+                }
+            );
+
+
+            if (!imported.length) {
+
+                setStatus(
+                    "importStatus",
+                    "No se pudieron reconocer elementos."
+                );
+
+                return;
+            }
+
+
+            items =
+                imported;
+
+
+            editingIndex =
+                -1;
+
+
+            saveItems();
+
+            renderItems();
+
+            generateOutput();
+
+
+            setStatus(
+                "importStatus",
+                imported.length +
+                " elemento(s) importado(s) correctamente."
+            );
+
+
+            $("importInput").value =
+                "";
+
+        } catch (error) {
+
+            setStatus(
+                "importStatus",
+                "Error al importar el HTML."
+            );
+
+        }
+    }
+
+
+    /*
+     * ============================================================
+     * EVENTOS
+     * ============================================================
+     */
+
+    $("elementType").addEventListener(
+        "change",
+        function() {
+
+            updateTypeFields();
+
+
+            setStatus(
+                "formStatus",
+                ""
+            );
+        }
+    );
+
+
+    $("addButton").addEventListener(
+        "click",
+        function() {
+
+            const item =
+                getFormData();
+
+
+            /*
+             * Si estamos editando un blank y todavía
+             * no hemos elegido tipo, NO hacemos nada.
+             */
+            if (!item) {
+
+                setStatus(
+                    "formStatus",
+                    "Selecciona un tipo de elemento antes de guardar."
+                );
+
+                return;
+            }
+
+
+            if (editingIndex >= 0) {
+
+                /*
+                 * REEMPLAZO EXACTO.
+                 *
+                 * El blank desaparece y el nuevo
+                 * elemento ocupa su misma posición.
+                 */
+                items[editingIndex] =
+                    item;
+
+
+                setStatus(
+                    "formStatus",
+                    "Elemento actualizado."
+                );
+
+            } else {
+
+                items.push(
+                    item
+                );
+
+
+                setStatus(
+                    "formStatus",
+                    "Elemento añadido."
+                );
+            }
+
+
+            saveItems();
+
+            renderItems();
+
+            generateOutput();
+
+
+            clearForm();
+        }
+    );
+
+
+    $("cancelEditButton").addEventListener(
+        "click",
+        function() {
+
+            clearForm();
+
+
+            setStatus(
+                "formStatus",
+                "Edición cancelada."
+            );
+        }
+    );
+
+
+    $("resetButton").addEventListener(
+        "click",
+        function() {
+
+            if (!items.length) {
+                return;
+            }
+
+
+            if (
+                !confirm(
+                    "¿Seguro que quieres borrar todos los elementos?"
+                )
+            ) {
+                return;
+            }
+
+
+            items = [];
+
+
+            saveItems();
+
+            renderItems();
+
+            generateOutput();
+
+            clearForm();
+        }
+    );
+
+
+    $("copyButton").addEventListener(
+        "click",
+        async function() {
+
+            const value =
+                $("output").value;
+
+
+            try {
+
+                await navigator.clipboard.writeText(
+                    value
+                );
+
+
+                setStatus(
+                    "outputStatus",
+                    "HTML copiado al portapapeles."
+                );
+
+            } catch (error) {
+
+                $("output").select();
+
+
+                document.execCommand(
+                    "copy"
+                );
+
+
+                setStatus(
+                    "outputStatus",
+                    "HTML copiado."
+                );
+            }
+        }
+    );
+
+
+    $("downloadButton").addEventListener(
+        "click",
+        function() {
+
+            const value =
+                $("output").value;
+
+
+            const blob =
+                new Blob(
+                    [value],
+                    {
+                        type:
+                            "text/html;charset=utf-8"
+                    }
+                );
+
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+
+            link.href =
+                url;
+
+
+            link.download =
+                "tiny-photos.html";
+
+
+            document.body.appendChild(
+                link
+            );
+
+
+            link.click();
+
+
+            link.remove();
+
+
+            URL.revokeObjectURL(
+                url
+            );
+        }
+    );
+
+
+    $("importButton").addEventListener(
+        "click",
+        importHtml
+    );
+
+
+    /*
+     * ============================================================
+     * INICIALIZACIÓN
+     * ============================================================
+     */
+
+    loadItems();
+
+    updateTypeFields();
+
+    renderItems();
+
+    generateOutput();
+
+})();
+</script>
+
+</body>
+</html>
