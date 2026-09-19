@@ -43,7 +43,7 @@
 
     .workspace {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
         gap: 18px;
         align-items: start;
     }
@@ -56,7 +56,7 @@
         position: sticky;
         top: 16px;
         height: calc(100vh - 32px);
-        min-height: 300px;
+        min-height: 420px;
         display: flex;
         flex-direction: column;
         min-width: 0;
@@ -66,14 +66,14 @@
         flex-shrink: 0;
     }
 
-    .elements-list {
+    #itemsList {
+        min-height: 20px;
         flex: 1;
         min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
         padding-right: 5px;
         overscroll-behavior: contain;
-        scrollbar-width: thin;
     }
 
     .field {
@@ -176,32 +176,10 @@
         line-height: 1.4;
     }
 
-    #itemsList {
-        min-height: 20px;
-    }
-
-    /*
-     * ============================================================
-     * ELEMENT ENTRY
-     * ============================================================
-     *
-     * El .element-entry contiene:
-     *
-     *   - el elemento arrastrable
-     *   - el botón + que está FUERA del elemento
-     *
-     * Así el + no forma parte del elemento visual.
-     */
-
     .element-entry {
         position: relative;
         margin-bottom: 8px;
         touch-action: none;
-        cursor: grab;
-    }
-
-    .element-entry:hover {
-        cursor: grab;
     }
 
     .element-entry.dragging {
@@ -212,10 +190,10 @@
     .element-entry.dragging .item {
         background: #fff;
         border-color: #999;
-        transform: scale(1.035) translateY(-2px);
         box-shadow:
             0 14px 30px rgba(0,0,0,.18),
             0 3px 8px rgba(0,0,0,.10);
+        transform: scale(1.035) translateY(-2px);
     }
 
     .element-entry.dragging .insert-after {
@@ -232,6 +210,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        cursor: grab;
         user-select: none;
         -webkit-user-select: none;
         touch-action: none;
@@ -247,15 +226,6 @@
     .item:hover {
         background: #fdfdfd;
         border-color: #cfcfcf;
-    }
-
-    .item.dragging::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: 9px;
-        pointer-events: none;
-        box-shadow: inset 0 0 0 2px rgba(0,0,0,.08);
     }
 
     .item-info {
@@ -288,64 +258,44 @@
         font-size: 12px;
     }
 
-    /*
-     * BOTÓN + FUERA DEL ELEMENTO
-     */
-
     .insert-after {
         display: block;
-        width: 34px;
-        height: 25px;
-        padding: 0;
         margin: 0 auto;
+        width: 34px;
+        height: 24px;
+        padding: 0;
         border-radius: 999px;
         font-size: 18px;
-        line-height: 21px;
-        font-weight: 700;
+        line-height: 20px;
+        font-weight: 400;
         background: #fff;
         color: #666;
         border-color: #d0d0d0;
-        cursor: pointer;
-        touch-action: manipulation;
     }
 
     .insert-after:hover {
-        background: #eeeeee;
+        background: #f0f0f0;
         color: #222;
-        border-color: #bdbdbd;
+        border-color: #aaa;
     }
 
-    /*
-     * BLANK
-     */
-
-    .item.blank-item {
-        background: #f7f7f7;
+    .blank-item {
+        background: #f8f8f8;
         border-style: dashed;
-        color: #777;
     }
 
     .blank-item .item-title {
-        color: #555;
+        color: #777;
     }
-
-    .blank-item .item-description {
-        color: #999;
-        font-style: italic;
-    }
-
-    /*
-     * PLACEHOLDER DE DRAG
-     */
 
     .drag-placeholder {
         box-sizing: border-box;
         border: 2px dashed #c7c7c7;
         border-radius: 9px;
         background: #f5f5f5;
+        margin-bottom: 8px;
         position: relative;
         opacity: .95;
-        margin-bottom: 8px;
     }
 
     .drag-placeholder::before {
@@ -381,7 +331,6 @@
     }
 
     @media (max-width: 900px) {
-
         .workspace {
             grid-template-columns: 1fr;
         }
@@ -394,7 +343,6 @@
     }
 
     @media (max-width: 750px) {
-
         body {
             padding: 14px;
         }
@@ -407,10 +355,6 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: flex-end;
-        }
-
-        .elements-panel {
-            height: 65vh;
         }
     }
 </style>
@@ -426,9 +370,9 @@
 
         <div class="left-column">
 
-            <!-- ================================================== -->
-            <!-- EDITOR -->
-            <!-- ================================================== -->
+            <!-- ================================================= -->
+            <!-- FORMULARIO -->
+            <!-- ================================================= -->
 
             <div class="panel">
 
@@ -438,59 +382,25 @@
                     <label for="elementType">Tipo de elemento</label>
 
                     <select id="elementType">
-
-                        <option value="">
-                            Selecciona un tipo...
-                        </option>
-
-                        <option value="polaroid">
-                            Polaroid
-                        </option>
-
-                        <option value="sticky">
-                            Sticky Note
-                        </option>
-
-                        <option value="sticky-fecha">
-                            Sticky Note + Fecha
-                        </option>
-
-                        <option value="sticky-png">
-                            Sticky PNG
-                        </option>
-
-                        <option value="ticket">
-                            Ticket
-                        </option>
-
-                        <option value="png-frame">
-                            PNG Frame
-                        </option>
-
-                        <option value="diary">
-                            Diary Notes
-                        </option>
-
-                        <option value="film-strip">
-                            Film Strip
-                        </option>
-
+                        <option value="">Selecciona un tipo...</option>
+                        <option value="polaroid">Polaroid</option>
+                        <option value="sticky">Sticky Note</option>
+                        <option value="sticky-fecha">Sticky Note + Fecha</option>
+                        <option value="sticky-png">Sticky PNG</option>
+                        <option value="ticket">Ticket</option>
+                        <option value="png-frame">PNG Frame</option>
+                        <option value="diary">Diary Notes</option>
+                        <option value="film-strip">Film Strip</option>
                     </select>
                 </div>
 
 
                 <!-- POLAROID -->
 
-                <div
-                    class="type-fields hidden"
-                    id="fields-polaroid"
-                >
+                <div class="type-fields hidden" id="fields-polaroid">
 
                     <div class="field">
-                        <label for="polaroidImage">
-                            URL de la imagen
-                        </label>
-
+                        <label for="polaroidImage">URL de la imagen</label>
                         <input
                             id="polaroidImage"
                             type="text"
@@ -498,12 +408,8 @@
                         >
                     </div>
 
-
                     <div class="field">
-                        <label for="polaroidAlt">
-                            ALT de la imagen
-                        </label>
-
+                        <label for="polaroidAlt">ALT de la imagen</label>
                         <input
                             id="polaroidAlt"
                             type="text"
@@ -511,12 +417,8 @@
                         >
                     </div>
 
-
                     <div class="field">
-                        <label for="polaroidText">
-                            Texto de la Polaroid
-                        </label>
-
+                        <label for="polaroidText">Texto de la Polaroid</label>
                         <input
                             id="polaroidText"
                             type="text"
@@ -533,16 +435,10 @@
 
                 <!-- STICKY -->
 
-                <div
-                    class="type-fields hidden"
-                    id="fields-sticky"
-                >
+                <div class="type-fields hidden" id="fields-sticky">
 
                     <div class="field">
-                        <label for="stickyText">
-                            Texto del Sticky Note
-                        </label>
-
+                        <label for="stickyText">Texto del Sticky Note</label>
                         <textarea
                             id="stickyText"
                             placeholder="Texto"
@@ -554,28 +450,18 @@
 
                 <!-- STICKY FECHA -->
 
-                <div
-                    class="type-fields hidden"
-                    id="fields-sticky-fecha"
-                >
+                <div class="type-fields hidden" id="fields-sticky-fecha">
 
                     <div class="field">
-                        <label for="stickyFechaText">
-                            Texto del Sticky Note
-                        </label>
-
+                        <label for="stickyFechaText">Texto del Sticky Note</label>
                         <textarea
                             id="stickyFechaText"
                             placeholder="Texto"
                         ></textarea>
                     </div>
 
-
                     <div class="field">
-                        <label for="stickyFechaDate">
-                            Fecha
-                        </label>
-
+                        <label for="stickyFechaDate">Fecha</label>
                         <input
                             id="stickyFechaDate"
                             type="text"
@@ -588,16 +474,10 @@
 
                 <!-- STICKY PNG -->
 
-                <div
-                    class="type-fields hidden"
-                    id="fields-sticky-png"
-                >
+                <div class="type-fields hidden" id="fields-sticky-png">
 
                     <div class="field">
-                        <label for="stickyPngImage">
-                            URL del PNG
-                        </label>
-
+                        <label for="stickyPngImage">URL del PNG</label>
                         <input
                             id="stickyPngImage"
                             type="text"
@@ -605,12 +485,8 @@
                         >
                     </div>
 
-
                     <div class="field">
-                        <label for="stickyPngAlt">
-                            ALT del PNG
-                        </label>
-
+                        <label for="stickyPngAlt">ALT del PNG</label>
                         <input
                             id="stickyPngAlt"
                             type="text"
@@ -623,16 +499,10 @@
 
                 <!-- TICKET -->
 
-                <div
-                    class="type-fields hidden"
-                    id="fields-ticket"
-                >
+                <div class="type-fields hidden" id="fields-ticket">
 
                     <div class="field">
-                        <label for="ticketImage">
-                            URL de la imagen
-                        </label>
-
+                        <label for="ticketImage">URL de la imagen</label>
                         <input
                             id="ticketImage"
                             type="text"
@@ -640,12 +510,8 @@
                         >
                     </div>
 
-
                     <div class="field">
-                        <label for="ticketAlt">
-                            ALT de la imagen
-                        </label>
-
+                        <label for="ticketAlt">ALT de la imagen</label>
                         <input
                             id="ticketAlt"
                             type="text"
@@ -658,16 +524,10 @@
 
                 <!-- PNG FRAME -->
 
-                <div
-                    class="type-fields hidden"
-                    id="fields-png-frame"
-                >
+                <div class="type-fields hidden" id="fields-png-frame">
 
                     <div class="field">
-                        <label for="pngFrameImage">
-                            URL de la imagen
-                        </label>
-
+                        <label for="pngFrameImage">URL de la imagen</label>
                         <input
                             id="pngFrameImage"
                             type="text"
@@ -675,12 +535,8 @@
                         >
                     </div>
 
-
                     <div class="field">
-                        <label for="pngFrameAlt">
-                            ALT de la imagen
-                        </label>
-
+                        <label for="pngFrameAlt">ALT de la imagen</label>
                         <input
                             id="pngFrameAlt"
                             type="text"
@@ -688,12 +544,8 @@
                         >
                     </div>
 
-
                     <div class="field">
-                        <label for="pngFrameScale">
-                            Escala
-                        </label>
-
+                        <label for="pngFrameScale">Escala</label>
                         <input
                             id="pngFrameScale"
                             type="number"
@@ -707,32 +559,25 @@
 
                 <!-- DIARY -->
 
-                <div
-                    class="type-fields hidden"
-                    id="fields-diary"
-                >
+                <div class="type-fields hidden" id="fields-diary">
 
                     <div class="field">
-
                         <label for="diaryText">
                             Contenido del Diary Notes
                         </label>
 
                         <textarea
                             id="diaryText"
-                            placeholder="Escribe cada línea. Escribe ... o … en una línea para crear una separación."
+                            placeholder="Escribe cada párrafo en una línea diferente. Escribe ... o … en una línea para crear una separación."
                         ></textarea>
 
                         <div class="hint">
-                            Una línea con
-                            <strong>...</strong>
-                            o
-                            <strong>…</strong>
+                            Una línea con <strong>...</strong>,
+                            <strong>…</strong> o <strong>⋯</strong>
                             se convierte directamente en
                             <strong>&lt;hr&gt;</strong>.
                             El &lt;hr&gt; queda fuera de los párrafos.
                         </div>
-
                     </div>
 
                 </div>
@@ -740,13 +585,9 @@
 
                 <!-- FILM STRIP -->
 
-                <div
-                    class="type-fields hidden"
-                    id="fields-film-strip"
-                >
+                <div class="type-fields hidden" id="fields-film-strip">
 
                     <div class="field">
-
                         <label for="filmName">
                             Nombre / comentario del Film Strip
                         </label>
@@ -756,97 +597,60 @@
                             type="text"
                             placeholder="Nombre o comentario"
                         >
-
                     </div>
 
-
                     <div class="field">
-
-                        <label for="filmImage1">
-                            Imagen 1
-                        </label>
-
+                        <label for="filmImage1">Imagen 1</label>
                         <input
                             id="filmImage1"
                             type="text"
                             placeholder="https://..."
                         >
-
                     </div>
 
-
                     <div class="field">
-
-                        <label for="filmAlt1">
-                            ALT 1
-                        </label>
-
+                        <label for="filmAlt1">ALT 1</label>
                         <input
                             id="filmAlt1"
                             type="text"
                             placeholder="Descripción"
                         >
-
                     </div>
 
-
                     <div class="field">
-
-                        <label for="filmImage2">
-                            Imagen 2
-                        </label>
-
+                        <label for="filmImage2">Imagen 2</label>
                         <input
                             id="filmImage2"
                             type="text"
                             placeholder="https://..."
                         >
-
                     </div>
 
-
                     <div class="field">
-
-                        <label for="filmAlt2">
-                            ALT 2
-                        </label>
-
+                        <label for="filmAlt2">ALT 2</label>
                         <input
                             id="filmAlt2"
                             type="text"
                             placeholder="Descripción"
                         >
-
                     </div>
 
-
                     <div class="field">
-
-                        <label for="filmImage3">
-                            Imagen 3
-                        </label>
-
+                        <label for="filmImage3">Imagen 3</label>
                         <input
                             id="filmImage3"
                             type="text"
                             placeholder="https://..."
                         >
-
                     </div>
 
-
                     <div class="field">
-
-                        <label for="filmAlt3">
-                            ALT 3
-                        </label>
-
+                        <label for="filmAlt3">ALT 3</label>
                         <input
                             id="filmAlt3"
                             type="text"
                             placeholder="Descripción"
                         >
-
                     </div>
 
                 </div>
@@ -856,6 +660,7 @@
 
                     <button
                         id="addButton"
+                        type="button"
                         class="success"
                     >
                         Añadir elemento
@@ -863,6 +668,7 @@
 
                     <button
                         id="cancelEditButton"
+                        type="button"
                         class="secondary hidden"
                     >
                         Cancelar edición
@@ -870,18 +676,14 @@
 
                 </div>
 
-
-                <div
-                    id="formStatus"
-                    class="status"
-                ></div>
+                <div id="formStatus" class="status"></div>
 
             </div>
 
 
-            <!-- ================================================== -->
+            <!-- ================================================= -->
             <!-- HTML GENERADO -->
-            <!-- ================================================== -->
+            <!-- ================================================= -->
 
             <div class="panel">
 
@@ -896,6 +698,7 @@
 
                     <button
                         id="copyButton"
+                        type="button"
                         class="success"
                     >
                         Copiar HTML
@@ -903,6 +706,7 @@
 
                     <button
                         id="downloadButton"
+                        type="button"
                         class="secondary"
                     >
                         Descargar HTML
@@ -910,17 +714,14 @@
 
                 </div>
 
-                <div
-                    id="outputStatus"
-                    class="status"
-                ></div>
+                <div id="outputStatus" class="status"></div>
 
             </div>
 
 
-            <!-- ================================================== -->
+            <!-- ================================================= -->
             <!-- IMPORTAR -->
-            <!-- ================================================== -->
+            <!-- ================================================= -->
 
             <div class="panel">
 
@@ -935,6 +736,7 @@
 
                     <button
                         id="importButton"
+                        type="button"
                         class="success"
                     >
                         Importar HTML
@@ -942,23 +744,18 @@
 
                 </div>
 
-                <div
-                    id="importStatus"
-                    class="status"
-                ></div>
+                <div id="importStatus" class="status"></div>
 
             </div>
 
         </div>
 
 
-        <!-- ====================================================== -->
+        <!-- ===================================================== -->
         <!-- ELEMENTOS ACTIVOS -->
-        <!-- ====================================================== -->
+        <!-- ===================================================== -->
 
-        <div
-            class="panel elements-panel"
-        >
+        <div class="panel elements-panel">
 
             <div class="elements-panel-header">
 
@@ -972,17 +769,13 @@
 
             </div>
 
-
-            <div
-                id="itemsList"
-                class="elements-list"
-            ></div>
-
+            <div id="itemsList"></div>
 
             <div class="actions">
 
                 <button
                     id="resetButton"
+                    type="button"
                     class="danger"
                 >
                     Borrar todo
@@ -1007,6 +800,10 @@
         "photobox-generator-items-v4";
 
 
+    const DIARY_IMAGE =
+        "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+
+
     let items = [];
 
     let editingId = null;
@@ -1019,29 +816,18 @@
     }
 
 
-    /*
-     * ============================================================
-     * UTILIDADES
-     * ============================================================
-     */
-
     function makeId() {
 
         if (
-            typeof crypto !== "undefined" &&
-            crypto.randomUUID
+            window.crypto &&
+            typeof window.crypto.randomUUID === "function"
         ) {
-            return crypto.randomUUID();
+            return window.crypto.randomUUID();
         }
 
-
         return (
-            "item-" +
-            Date.now() +
-            "-" +
-            Math.random()
-                .toString(36)
-                .slice(2)
+            Date.now().toString(36) +
+            Math.random().toString(36).slice(2)
         );
     }
 
@@ -1084,7 +870,6 @@
                     separator,
                     firstLetter
                 ) {
-
                     return (
                         separator +
                         firstLetter.toLocaleUpperCase("es-ES")
@@ -1096,7 +881,7 @@
 
     /*
      * ============================================================
-     * DIARY NOTES
+     * DIARY
      * ============================================================
      */
 
@@ -1117,7 +902,6 @@
         const normalized =
             normalizeDiaryLine(line);
 
-
         return (
             normalized === "..." ||
             normalized === "…" ||
@@ -1129,9 +913,7 @@
     function formatDiaryToHtml(text) {
 
         const lines =
-            normalizeLineEndings(text)
-                .split("\n");
-
+            normalizeLineEndings(text).split("\n");
 
         const output = [];
 
@@ -1142,10 +924,6 @@
                 normalizeDiaryLine(line);
 
 
-            /*
-             * EL SEPARADOR SE COMPRUEBA ANTES QUE NADA.
-             */
-
             if (isDiarySeparator(normalized)) {
 
                 output.push("<hr>");
@@ -1154,25 +932,16 @@
             }
 
 
-            /*
-             * Línea vacía = nada.
-             */
-
             if (!normalized) {
                 return;
             }
 
-
-            /*
-             * Texto normal = párrafo.
-             */
 
             output.push(
                 "<p>" +
                 escapeHtmlText(normalized) +
                 "</p>"
             );
-
         });
 
 
@@ -1186,47 +955,26 @@
             Array.from(li.children);
 
 
-        const diaryMarker =
+        const hasDiaryMarker =
             directChildren.some(function(element) {
 
                 const tag =
                     element.tagName.toLowerCase();
 
+                return tag === "hr";
+            }) ||
+            directChildren.some(function(element) {
 
                 return (
-                    tag === "hr" ||
+                    element.tagName.toLowerCase() === "img" &&
                     (
-                        tag === "img" &&
-                        (
-                            element.getAttribute("alt") || ""
-                        ).toLowerCase() === "diario"
-                    )
+                        element.getAttribute("alt") || ""
+                    ).toLowerCase() === "diario"
                 );
-
             });
 
 
-        if (!diaryMarker) {
-            return null;
-        }
-
-
-        const hasDiaryStructure =
-            directChildren.some(function(element) {
-
-                const tag =
-                    element.tagName.toLowerCase();
-
-
-                return (
-                    tag === "p" ||
-                    tag === "hr"
-                );
-
-            });
-
-
-        if (!hasDiaryStructure) {
+        if (!hasDiaryMarker) {
             return null;
         }
 
@@ -1248,51 +996,41 @@
             }
 
 
-            if (tag !== "p") {
-                return;
-            }
+            if (tag === "p") {
+
+                const clone =
+                    element.cloneNode(true);
 
 
-            const clone =
-                element.cloneNode(true);
+                clone
+                    .querySelectorAll("br")
+                    .forEach(function(br) {
+
+                        br.replaceWith(
+                            document.createTextNode("\n")
+                        );
+                    });
 
 
-            clone
-                .querySelectorAll("br")
-                .forEach(function(br) {
-
-                    br.replaceWith(
-                        document.createTextNode("\n")
+                const text =
+                    normalizeDiaryLine(
+                        clone.textContent
                     );
 
-                });
+
+                if (!text) {
+                    return;
+                }
 
 
-            const text =
-                clone.textContent.trim();
+                if (isDiarySeparator(text)) {
 
+                    parts.push("...");
 
-            if (!text) {
-                return;
-            }
+                } else {
 
-
-            /*
-             * Reparar HTML antiguo:
-             *
-             * <p>…</p>
-             *
-             * se convierte internamente en ...
-             */
-
-            if (isDiarySeparator(text)) {
-
-                parts.push("...");
-
-            } else {
-
-                parts.push(text);
-
+                    parts.push(text);
+                }
             }
 
         });
@@ -1316,22 +1054,22 @@
      * ============================================================
      */
 
+    const allFieldTypes = [
+        "polaroid",
+        "sticky",
+        "sticky-fecha",
+        "sticky-png",
+        "ticket",
+        "png-frame",
+        "diary",
+        "film-strip"
+    ];
+
+
     function updateTypeFields() {
 
         const selectedType =
             $("elementType").value;
-
-
-        const allFieldTypes = [
-            "polaroid",
-            "sticky",
-            "sticky-fecha",
-            "sticky-png",
-            "ticket",
-            "png-frame",
-            "diary",
-            "film-strip"
-        ];
 
 
         allFieldTypes.forEach(function(type) {
@@ -1349,7 +1087,6 @@
                 "hidden",
                 type !== selectedType
             );
-
         });
     }
 
@@ -1361,6 +1098,12 @@
 
 
         if (!type) {
+
+            setStatus(
+                "formStatus",
+                "Selecciona primero un tipo de elemento."
+            );
+
             return null;
         }
 
@@ -1453,36 +1196,28 @@
 
             return {
                 type: "film-strip",
-
                 name:
                     $("filmName").value,
 
                 images: [
-
                     {
                         image:
                             $("filmImage1").value.trim(),
-
                         alt:
                             $("filmAlt1").value
                     },
-
                     {
                         image:
                             $("filmImage2").value.trim(),
-
                         alt:
                             $("filmAlt2").value
                     },
-
                     {
                         image:
                             $("filmImage3").value.trim(),
-
                         alt:
                             $("filmAlt3").value
                     }
-
                 ]
             };
         }
@@ -1496,26 +1231,34 @@
 
         $("elementType").value = "";
 
+
         $("polaroidImage").value = "";
         $("polaroidAlt").value = "";
         $("polaroidText").value = "";
 
+
         $("stickyText").value = "";
+
 
         $("stickyFechaText").value = "";
         $("stickyFechaDate").value = "";
 
+
         $("stickyPngImage").value = "";
         $("stickyPngAlt").value = "";
 
+
         $("ticketImage").value = "";
         $("ticketAlt").value = "";
+
 
         $("pngFrameImage").value = "";
         $("pngFrameAlt").value = "";
         $("pngFrameScale").value = "1.4";
 
+
         $("diaryText").value = "";
+
 
         $("filmName").value = "";
         $("filmImage1").value = "";
@@ -1525,13 +1268,17 @@
         $("filmImage3").value = "";
         $("filmAlt3").value = "";
 
+
         editingId = null;
+
 
         $("addButton").textContent =
             "Añadir elemento";
 
+
         $("cancelEditButton")
             .classList.add("hidden");
+
 
         updateTypeFields();
     }
@@ -1556,7 +1303,7 @@
 
             setStatus(
                 "formStatus",
-                "Elemento vacío. Elige ahora el tipo de elemento."
+                "Este elemento está vacío. Selecciona un tipo para configurarlo."
             );
 
             return;
@@ -1644,7 +1391,9 @@
 
 
             const images =
-                item.images || [];
+                Array.isArray(item.images)
+                    ? item.images
+                    : [];
 
 
             $("filmImage1").value =
@@ -1675,6 +1424,7 @@
         $("addButton").textContent =
             "Guardar cambios";
 
+
         $("cancelEditButton")
             .classList.remove("hidden");
 
@@ -1700,56 +1450,32 @@
 
 
         if (item.type === "sticky-png") {
-
-            return (
-                item.alt ||
-                "(sin ALT)"
-            );
+            return item.alt || "(sin ALT)";
         }
 
 
         if (item.type === "polaroid") {
-
-            return (
-                item.text ||
-                "(sin texto)"
-            );
+            return item.text || "(sin texto)";
         }
 
 
         if (item.type === "sticky") {
-
-            return (
-                item.text ||
-                "(sin texto)"
-            );
+            return item.text || "(sin texto)";
         }
 
 
         if (item.type === "sticky-fecha") {
-
-            return (
-                item.date ||
-                "(sin fecha)"
-            );
+            return item.date || "(sin fecha)";
         }
 
 
         if (item.type === "ticket") {
-
-            return (
-                item.alt ||
-                "(sin ALT)"
-            );
+            return item.alt || "(sin ALT)";
         }
 
 
         if (item.type === "png-frame") {
-
-            return (
-                item.alt ||
-                "(sin ALT)"
-            );
+            return item.alt || "(sin ALT)";
         }
 
 
@@ -1767,23 +1493,15 @@
                         line &&
                         !isDiarySeparator(line)
                     );
-
                 });
 
 
-            return (
-                firstText ||
-                "(vacío)"
-            );
+            return firstText || "(vacío)";
         }
 
 
         if (item.type === "film-strip") {
-
-            return (
-                item.name ||
-                "Sin nombre"
-            );
+            return item.name || "Sin nombre";
         }
 
 
@@ -1793,18 +1511,11 @@
 
     function getItemTitle(item) {
 
-        if (item.type === "blank") {
-            return "Nuevo elemento (vacío)";
-        }
-
-
         const names = {
 
-            "polaroid":
-                "Polaroid",
+            "polaroid": "Polaroid",
 
-            "sticky":
-                "Sticky Note",
+            "sticky": "Sticky Note",
 
             "sticky-fecha":
                 "Sticky Note + Fecha",
@@ -1822,29 +1533,29 @@
                 "Diary Notes",
 
             "film-strip":
-                "Film Strip"
+                "Film Strip",
+
+            "blank":
+                "Nuevo elemento — vacío"
         };
 
 
-        return (
-            names[item.type] ||
-            item.type
-        );
+        return names[item.type] ||
+            "Elemento";
     }
 
 
     /*
      * ============================================================
-     * HTML DE LOS ELEMENTOS
+     * GENERACIÓN HTML
      * ============================================================
      */
 
     function elementToHtml(item) {
 
         /*
-         * Un Blank no genera HTML.
+         * Un Blank NO genera ningún <li>.
          */
-
         if (item.type === "blank") {
             return "";
         }
@@ -1870,9 +1581,7 @@
                 ) +
                 "\"></p>\n" +
                 "    <ul><li>" +
-                escapeHtmlText(
-                    text
-                ) +
+                escapeHtmlText(text) +
                 "</li></ul>\n" +
                 "</li>"
             );
@@ -1890,9 +1599,7 @@
             return (
                 "<li>\n" +
                 "    <p>" +
-                escapeHtmlText(
-                    text
-                ) +
+                escapeHtmlText(text) +
                 "</p>\n" +
                 "</li>"
             );
@@ -1910,9 +1617,7 @@
             return (
                 "<li>\n" +
                 "    <p>" +
-                escapeHtmlText(
-                    text
-                ) +
+                escapeHtmlText(text) +
                 "</p>\n" +
                 "    <ul><li>" +
                 escapeHtmlText(
@@ -1983,22 +1688,6 @@
         }
 
 
-        /*
-         * ========================================================
-         * DIARY
-         * ========================================================
-         *
-         * Texto normal:
-         *
-         * <p>Texto</p>
-         *
-         * Separador:
-         *
-         * <hr>
-         *
-         * El <hr> NUNCA está dentro de <p>.
-         */
-
         if (item.type === "diary") {
 
             const diaryContent =
@@ -2009,7 +1698,9 @@
 
             return (
                 "<li>\n" +
-                "    <img src=\"data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=\" alt=\"Diario\"" +
+                "    <img src=\"" +
+                DIARY_IMAGE +
+                "\" alt=\"Diario\"" +
                 (
                     diaryContent
                         ? "\n" +
@@ -2029,15 +1720,16 @@
         if (item.type === "film-strip") {
 
             const images =
-                item.images || [];
+                Array.isArray(item.images)
+                    ? item.images
+                    : [];
 
 
             const frames =
                 images
                     .filter(function(image) {
-
-                        return image.image;
-
+                        return image &&
+                            image.image;
                     })
                     .map(function(image) {
 
@@ -2054,7 +1746,6 @@
                             "\">\n" +
                             "    </div>"
                         );
-
                     })
                     .join("\n");
 
@@ -2073,7 +1764,7 @@
 
     function generateOutput() {
 
-        const htmlElements =
+        const generated =
             items
                 .filter(function(item) {
                     return item.type !== "blank";
@@ -2088,19 +1779,18 @@
         const html =
             "<section class=\"tiny-photos\">\n" +
             "<ul>\n" +
-            htmlElements +
+            generated +
             "\n</ul>\n" +
             "</section>";
 
 
-        $("output").value =
-            html;
+        $("output").value = html;
     }
 
 
     /*
      * ============================================================
-     * STORAGE
+     * LOCAL STORAGE
      * ============================================================
      */
 
@@ -2146,53 +1836,37 @@
             items =
                 parsed.map(function(item) {
 
-                    const normalized =
-                        item &&
-                        typeof item === "object"
-                            ? item
-                            : {
-                                type: "blank"
-                            };
-
-
-                    if (!normalized.id) {
-                        normalized.id = makeId();
+                    if (!item || typeof item !== "object") {
+                        return null;
                     }
 
 
-                    /*
-                     * Compatibilidad con datos antiguos
-                     * sin id.
-                     */
-
-                    if (
-                        normalized.type ===
-                        "film-strip" &&
-                        !Array.isArray(
-                            normalized.images
-                        )
-                    ) {
-                        normalized.images = [];
+                    if (!item.id) {
+                        item.id = makeId();
                     }
 
 
-                    return normalized;
-                });
+                    return item;
+
+                }).filter(Boolean);
 
 
+            /*
+             * Guardamos inmediatamente por si
+             * había elementos antiguos sin ID.
+             */
             saveItems();
 
         } catch (error) {
 
             items = [];
-
         }
     }
 
 
     /*
      * ============================================================
-     * RENDER DE ELEMENTOS
+     * RENDER ELEMENTOS
      * ============================================================
      */
 
@@ -2208,9 +1882,7 @@
         if (!items.length) {
 
             const empty =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             empty.className =
@@ -2223,25 +1895,15 @@
 
             list.appendChild(empty);
 
+
             return;
         }
 
 
         items.forEach(function(item, index) {
 
-            /*
-             * Wrapper.
-             *
-             * Dentro:
-             *
-             *   .item
-             *   botón +
-             */
-
             const entry =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             entry.className =
@@ -2252,14 +1914,8 @@
                 item;
 
 
-            /*
-             * ELEMENTO
-             */
-
             const row =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             row.className =
@@ -2279,9 +1935,7 @@
 
 
             const info =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             info.className =
@@ -2289,9 +1943,7 @@
 
 
             const title =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             title.className =
@@ -2305,9 +1957,7 @@
 
 
             const description =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             description.className =
@@ -2322,14 +1972,8 @@
             info.appendChild(description);
 
 
-            /*
-             * BOTONES
-             */
-
             const actions =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             actions.className =
@@ -2337,10 +1981,7 @@
 
 
             const up =
-                document.createElement(
-                    "button"
-                );
-
+                document.createElement("button");
 
             up.type = "button";
             up.textContent = "↑";
@@ -2348,10 +1989,7 @@
 
 
             const down =
-                document.createElement(
-                    "button"
-                );
-
+                document.createElement("button");
 
             down.type = "button";
             down.textContent = "↓";
@@ -2359,30 +1997,21 @@
 
 
             const edit =
-                document.createElement(
-                    "button"
-                );
-
+                document.createElement("button");
 
             edit.type = "button";
             edit.textContent = "Editar";
 
 
             const duplicate =
-                document.createElement(
-                    "button"
-                );
-
+                document.createElement("button");
 
             duplicate.type = "button";
             duplicate.textContent = "Duplicar";
 
 
             const remove =
-                document.createElement(
-                    "button"
-                );
-
+                document.createElement("button");
 
             remove.type = "button";
             remove.textContent = "Eliminar";
@@ -2398,7 +2027,6 @@
 
                     event.stopPropagation();
 
-
                     const currentItem =
                         entry._item;
 
@@ -2412,22 +2040,14 @@
                     if (currentIndex > 0) {
 
                         const temp =
-                            items[
-                                currentIndex - 1
-                            ];
+                            items[currentIndex - 1];
 
 
-                        items[
-                            currentIndex - 1
-                        ] =
-                            items[
-                                currentIndex
-                            ];
+                        items[currentIndex - 1] =
+                            items[currentIndex];
 
 
-                        items[
-                            currentIndex
-                        ] =
+                        items[currentIndex] =
                             temp;
 
 
@@ -2435,7 +2055,6 @@
                         renderItems();
                         generateOutput();
                     }
-
                 }
             );
 
@@ -2468,22 +2087,14 @@
                     ) {
 
                         const temp =
-                            items[
-                                currentIndex + 1
-                            ];
+                            items[currentIndex + 1];
 
 
-                        items[
-                            currentIndex + 1
-                        ] =
-                            items[
-                                currentIndex
-                            ];
+                        items[currentIndex + 1] =
+                            items[currentIndex];
 
 
-                        items[
-                            currentIndex
-                        ] =
+                        items[currentIndex] =
                             temp;
 
 
@@ -2491,7 +2102,6 @@
                         renderItems();
                         generateOutput();
                     }
-
                 }
             );
 
@@ -2511,13 +2121,13 @@
                         entry._item;
 
 
-                    const currentIndex =
+                    const index =
                         items.indexOf(
                             currentItem
                         );
 
 
-                    if (currentIndex < 0) {
+                    if (index < 0) {
                         return;
                     }
 
@@ -2531,27 +2141,12 @@
                     );
 
 
-                    $("addButton").textContent =
-                        "Guardar cambios";
-
-
-                    $("cancelEditButton")
-                        .classList.remove(
-                            "hidden"
-                        );
-
-
-                    if (
-                        currentItem.type !==
-                        "blank"
-                    ) {
-
-                        setStatus(
-                            "formStatus",
-                            "Editando elemento."
-                        );
-                    }
-
+                    setStatus(
+                        "formStatus",
+                        currentItem.type === "blank"
+                            ? "Selecciona el tipo de elemento y completa sus datos."
+                            : "Editando elemento."
+                    );
                 }
             );
 
@@ -2604,7 +2199,6 @@
                     saveItems();
                     renderItems();
                     generateOutput();
-
                 }
             );
 
@@ -2645,7 +2239,6 @@
                         editingId ===
                         currentItem.id
                     ) {
-
                         clearForm();
                     }
 
@@ -2653,7 +2246,6 @@
                     saveItems();
                     renderItems();
                     generateOutput();
-
                 }
             );
 
@@ -2671,49 +2263,31 @@
 
             /*
              * ====================================================
-             * BOTÓN +
-             *
-             * ESTÁ FUERA DEL .item
+             * BOTÓN + FUERA DEL ELEMENTO
              * ====================================================
              */
 
-            const insertAfter =
-                document.createElement(
-                    "button"
-                );
+            const insertButton =
+                document.createElement("button");
 
 
-            insertAfter.type =
+            insertButton.type =
                 "button";
 
 
-            insertAfter.className =
+            insertButton.className =
                 "insert-after";
 
 
-            insertAfter.textContent =
+            insertButton.textContent =
                 "+";
 
 
-            insertAfter.title =
+            insertButton.title =
                 "Crear un elemento después de este";
 
 
-            insertAfter.addEventListener(
-                "pointerdown",
-                function(event) {
-
-                    /*
-                     * El + nunca inicia drag.
-                     */
-
-                    event.stopPropagation();
-
-                }
-            );
-
-
-            insertAfter.addEventListener(
+            insertButton.addEventListener(
                 "click",
                 function(event) {
 
@@ -2736,13 +2310,8 @@
 
 
                     const blank = {
-
-                        id:
-                            makeId(),
-
-                        type:
-                            "blank"
-
+                        id: makeId(),
+                        type: "blank"
                     };
 
 
@@ -2762,32 +2331,288 @@
                         "formStatus",
                         "Elemento vacío creado. Pulsa Editar para elegir el tipo."
                     );
-
                 }
             );
 
 
             entry.appendChild(row);
-            entry.appendChild(insertAfter);
+            entry.appendChild(insertButton);
 
 
             setupDrag(entry);
 
 
             list.appendChild(entry);
-
         });
     }
 
 
-    function setStatus(
-        id,
-        message
-    ) {
+    function setStatus(id, message) {
 
         $(id).textContent =
             message || "";
     }
+
+
+    /*
+     * ============================================================
+     * GUARDAR FORMULARIO
+     * ============================================================
+     */
+
+    $("addButton").addEventListener(
+        "click",
+        function() {
+
+            const item =
+                getFormData();
+
+
+            if (!item) {
+                return;
+            }
+
+
+            if (editingId !== null) {
+
+                const index =
+                    items.findIndex(
+                        function(existing) {
+                            return (
+                                existing.id ===
+                                editingId
+                            );
+                        }
+                    );
+
+
+                if (index < 0) {
+
+                    setStatus(
+                        "formStatus",
+                        "No se encontró el elemento que estabas editando."
+                    );
+
+                    return;
+                }
+
+
+                item.id =
+                    editingId;
+
+
+                items[index] =
+                    item;
+
+
+                setStatus(
+                    "formStatus",
+                    "Elemento actualizado."
+                );
+
+            } else {
+
+                item.id =
+                    makeId();
+
+
+                items.push(item);
+
+
+                setStatus(
+                    "formStatus",
+                    "Elemento añadido."
+                );
+            }
+
+
+            saveItems();
+            renderItems();
+            generateOutput();
+
+
+            clearForm();
+        }
+    );
+
+
+    /*
+     * CANCELAR EDICIÓN
+     */
+
+    $("cancelEditButton").addEventListener(
+        "click",
+        function() {
+
+            clearForm();
+
+
+            setStatus(
+                "formStatus",
+                "Edición cancelada."
+            );
+        }
+    );
+
+
+    /*
+     * SELECTOR DE TIPO
+     */
+
+    $("elementType").addEventListener(
+        "change",
+        function() {
+
+            updateTypeFields();
+
+
+            setStatus(
+                "formStatus",
+                ""
+            );
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * BORRAR TODO
+     * ============================================================
+     */
+
+    $("resetButton").addEventListener(
+        "click",
+        function() {
+
+            if (!items.length) {
+                return;
+            }
+
+
+            if (
+                !confirm(
+                    "¿Seguro que quieres borrar todos los elementos?"
+                )
+            ) {
+                return;
+            }
+
+
+            items = [];
+
+
+            saveItems();
+            renderItems();
+            generateOutput();
+
+
+            clearForm();
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * COPIAR
+     * ============================================================
+     */
+
+    $("copyButton").addEventListener(
+        "click",
+        async function() {
+
+            const value =
+                $("output").value;
+
+
+            try {
+
+                await navigator.clipboard.writeText(
+                    value
+                );
+
+
+                setStatus(
+                    "outputStatus",
+                    "HTML copiado al portapapeles."
+                );
+
+            } catch (error) {
+
+                $("output").select();
+
+                document.execCommand(
+                    "copy"
+                );
+
+
+                setStatus(
+                    "outputStatus",
+                    "HTML copiado."
+                );
+            }
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * DESCARGAR
+     * ============================================================
+     */
+
+    $("downloadButton").addEventListener(
+        "click",
+        function() {
+
+            const value =
+                $("output").value;
+
+
+            const blob =
+                new Blob(
+                    [value],
+                    {
+                        type:
+                            "text/html;charset=utf-8"
+                    }
+                );
+
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            const link =
+                document.createElement("a");
+
+
+            link.href =
+                url;
+
+
+            link.download =
+                "tiny-photos.html";
+
+
+            document.body.appendChild(
+                link
+            );
+
+
+            link.click();
+
+
+            link.remove();
+
+
+            URL.revokeObjectURL(
+                url
+            );
+        }
+    );
 
 
     /*
@@ -2807,25 +2632,12 @@
                 }
 
 
-                /*
-                 * El botón + y botones internos no arrastran.
-                 */
-
                 if (
-                    event.target.closest(
-                        "button"
-                    ) ||
-                    event.target.closest(
-                        "input"
-                    ) ||
-                    event.target.closest(
-                        "textarea"
-                    ) ||
-                    event.target.closest(
-                        "select"
-                    )
+                    event.target.closest("button") ||
+                    event.target.closest("input") ||
+                    event.target.closest("textarea") ||
+                    event.target.closest("select")
                 ) {
-
                     return;
                 }
 
@@ -2864,7 +2676,6 @@
 
                     dragging:
                         false
-
                 };
 
 
@@ -2875,7 +2686,6 @@
                     );
 
                 } catch (error) {}
-
             }
         );
 
@@ -2893,7 +2703,6 @@
                     event.pointerId !==
                     dragState.pointerId
                 ) {
-
                     return;
                 }
 
@@ -2916,7 +2725,6 @@
                             dy * dy
                         ) < 5
                     ) {
-
                         return;
                     }
 
@@ -2932,7 +2740,6 @@
                     dragState,
                     event
                 );
-
             }
         );
 
@@ -2950,7 +2757,6 @@
                     event.pointerId !==
                     dragState.pointerId
                 ) {
-
                     return;
                 }
 
@@ -2960,8 +2766,8 @@
                 );
 
 
-                dragState = null;
-
+                dragState =
+                    null;
             }
         );
 
@@ -2980,8 +2786,8 @@
                 );
 
 
-                dragState = null;
-
+                dragState =
+                    null;
             }
         );
     }
@@ -3026,14 +2832,9 @@
             placeholder;
 
 
-        /*
-         * Primero colocamos el hueco donde estaba
-         * el elemento.
-         */
-
         entry.parentNode.insertBefore(
             placeholder,
-            entry.nextSibling
+            entry
         );
 
 
@@ -3046,10 +2847,6 @@
             "drag-active"
         );
 
-
-        /*
-         * Lo convertimos en elemento flotante.
-         */
 
         entry.style.position =
             "fixed";
@@ -3139,7 +2936,8 @@
         const entries =
             Array.from(
                 list.children
-            ).filter(function(element) {
+            )
+            .filter(function(element) {
 
                 return (
                     element !==
@@ -3148,7 +2946,6 @@
                         "element-entry"
                     )
                 );
-
             });
 
 
@@ -3189,7 +2986,6 @@
                                         .getBoundingClientRect()
                                         .top
                                 ];
-
                             }
                         );
 
@@ -3240,7 +3036,6 @@
                                         .getBoundingClientRect()
                                         .top
                                 ];
-
                             }
                         );
 
@@ -3305,7 +3100,6 @@
                                 delta +
                                 "px)"
                         },
-
                         {
                             transform:
                                 "translateY(0)"
@@ -3317,7 +3111,6 @@
                             "cubic-bezier(.2,.8,.2,1)"
                     }
                 );
-
             }
         );
     }
@@ -3328,11 +3121,6 @@
     ) {
 
         if (!state.dragging) {
-
-            cancelDragging(
-                state
-            );
-
             return;
         }
 
@@ -3356,7 +3144,7 @@
 
 
         /*
-         * El hueco visible es la autoridad.
+         * El placeholder es la autoridad.
          */
 
         const targetRect =
@@ -3368,8 +3156,8 @@
 
 
         /*
-         * Ponemos físicamente el entry donde estaba
-         * el placeholder.
+         * Ponemos el elemento exactamente
+         * donde está el placeholder.
          */
 
         placeholder.replaceWith(
@@ -3395,12 +3183,11 @@
                         deltaX +
                         "px, " +
                         deltaY +
-                        "px) scale(1.035)"
+                        "px) scale(1.035) translateY(-2px)"
                 },
-
                 {
                     transform:
-                        "scale(1.035)"
+                        "scale(1.035) translateY(-2px)"
                 }
             ],
             {
@@ -3412,19 +3199,16 @@
 
 
         /*
-         * El DOM manda.
+         * El orden real lo sacamos del DOM.
          */
 
         const domEntries =
             Array.from(
-                $("itemsList").children
-            ).filter(function(element) {
-
-                return element.classList.contains(
-                    "element-entry"
-                );
-
-            });
+                $("itemsList")
+                    .querySelectorAll(
+                        ".element-entry"
+                    )
+            );
 
 
         items =
@@ -3432,7 +3216,6 @@
                 function(domEntry) {
 
                     return domEntry._item;
-
                 }
             );
 
@@ -3516,8 +3299,9 @@
 
         } else {
 
-            $("itemsList")
-                .appendChild(entry);
+            $("itemsList").appendChild(
+                entry
+            );
         }
 
 
@@ -3573,7 +3357,7 @@
 
     /*
      * ============================================================
-     * IMPORTACIÓN
+     * IMPORTACIÓN HTML
      * ============================================================
      */
 
@@ -3590,16 +3374,16 @@
             const directUl =
                 Array.from(
                     section.children
-                )
-                .find(function(element) {
+                ).find(
+                    function(element) {
 
-                    return (
-                        element.tagName
-                            .toLowerCase() ===
-                        "ul"
-                    );
-
-                });
+                        return (
+                            element.tagName
+                                .toLowerCase() ===
+                            "ul"
+                        );
+                    }
+                );
 
 
             if (directUl) {
@@ -3646,7 +3430,6 @@
                             .toLowerCase() ===
                         "p"
                     );
-
                 }
             );
 
@@ -3660,7 +3443,6 @@
                             .toLowerCase() ===
                         "ul"
                     );
-
                 }
             );
 
@@ -3681,30 +3463,31 @@
         }
 
 
-        const hasImageInP =
-            img.parentElement === p;
-
-
-        if (!hasImageInP) {
+        if (
+            img.parentElement !==
+            p
+        ) {
             return null;
         }
 
 
         const textLi =
-            ul.querySelector(
-                "li"
+            Array.from(
+                ul.children
+            ).find(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "li"
+                    );
+                }
             );
 
 
-        /*
-         * Solo se importa la PRIMERA línea
-         * de la Polaroid.
-         */
-
         return {
-
-            type:
-                "polaroid",
+            type: "polaroid",
 
             image:
                 img.getAttribute(
@@ -3737,10 +3520,16 @@
 
         const frames =
             Array.from(
-                li.querySelectorAll(
-                    ":scope > .film-frame"
-                )
-            );
+                li.children
+            )
+            .filter(function(element) {
+
+                return (
+                    element.classList.contains(
+                        "film-frame"
+                    )
+                );
+            });
 
 
         const images =
@@ -3768,24 +3557,15 @@
                                     "alt"
                                 ) || ""
                                 : ""
-
                     };
-
                 }
             );
 
 
         return {
-
-            type:
-                "film-strip",
-
-            name:
-                "",
-
-            images:
-                images
-
+            type: "film-strip",
+            name: "",
+            images: images
         };
     }
 
@@ -3814,8 +3594,7 @@
 
         return {
 
-            type:
-                "ticket",
+            type: "ticket",
 
             image:
                 img.getAttribute(
@@ -3826,7 +3605,6 @@
                 img.getAttribute(
                     "alt"
                 ) || ""
-
         };
     }
 
@@ -3878,8 +3656,7 @@
 
         return {
 
-            type:
-                "png-frame",
+            type: "png-frame",
 
             image:
                 img.getAttribute(
@@ -3893,7 +3670,6 @@
 
             scale:
                 scale
-
         };
     }
 
@@ -3913,8 +3689,7 @@
 
         return {
 
-            type:
-                "sticky-png",
+            type: "sticky-png",
 
             image:
                 img.getAttribute(
@@ -3925,7 +3700,6 @@
                 img.getAttribute(
                     "alt"
                 ) || ""
-
         };
     }
 
@@ -3947,7 +3721,6 @@
                             .toLowerCase() ===
                         "p"
                     );
-
                 }
             );
 
@@ -3961,7 +3734,6 @@
                             .toLowerCase() ===
                         "ul"
                     );
-
                 }
             );
 
@@ -3971,14 +3743,27 @@
         }
 
 
-        if (p.querySelector("img")) {
+        if (
+            p.querySelector(
+                "img"
+            )
+        ) {
             return null;
         }
 
 
         const dateLi =
-            ul.querySelector(
-                "li"
+            Array.from(
+                ul.children
+            ).find(
+                function(element) {
+
+                    return (
+                        element.tagName
+                            .toLowerCase() ===
+                        "li"
+                    );
+                }
             );
 
 
@@ -3994,7 +3779,6 @@
                 dateLi
                     ? dateLi.textContent
                     : ""
-
         };
     }
 
@@ -4016,7 +3800,6 @@
                             .toLowerCase() ===
                         "p"
                     );
-
                 }
             );
 
@@ -4026,7 +3809,11 @@
         }
 
 
-        if (p.querySelector("img")) {
+        if (
+            p.querySelector(
+                "img"
+            )
+        ) {
             return null;
         }
 
@@ -4040,7 +3827,6 @@
                             .toLowerCase() ===
                         "ul"
                     );
-
                 }
             );
 
@@ -4057,7 +3843,6 @@
 
             text:
                 p.textContent
-
         };
     }
 
@@ -4131,6 +3916,8 @@
 
         /*
          * 6. Diary
+         *
+         * Se comprueba antes que Sticky.
          */
 
         result =
@@ -4233,9 +4020,19 @@
                                 .toLowerCase() ===
                             "li"
                         );
-
                     }
                 );
+
+
+            if (!lis.length) {
+
+                setStatus(
+                    "importStatus",
+                    "El <ul> no contiene elementos <li>."
+                );
+
+                return;
+            }
 
 
             const imported = [];
@@ -4258,7 +4055,6 @@
                             item
                         );
                     }
-
                 }
             );
 
@@ -4293,11 +4089,16 @@
             );
 
 
-            $("importInput")
-                .value = "";
-
+            $("importInput").value =
+                "";
 
         } catch (error) {
+
+            console.error(
+                "Error importando HTML:",
+                error
+            );
+
 
             setStatus(
                 "importStatus",
@@ -4308,258 +4109,8 @@
 
 
     /*
-     * ============================================================
-     * EVENTOS
-     * ============================================================
+     * IMPORT BUTTON
      */
-
-    $("elementType").addEventListener(
-        "change",
-        function() {
-
-            updateTypeFields();
-
-
-            setStatus(
-                "formStatus",
-                ""
-            );
-        }
-    );
-
-
-    $("addButton").addEventListener(
-        "click",
-        function() {
-
-            const item =
-                getFormData();
-
-
-            /*
-             * Si estamos editando un Blank y todavía
-             * no se ha elegido tipo.
-             */
-
-            if (!item) {
-
-                setStatus(
-                    "formStatus",
-                    "Selecciona un tipo de elemento antes de guardar."
-                );
-
-                return;
-            }
-
-
-            if (editingId !== null) {
-
-                const index =
-                    items.findIndex(
-                        function(existingItem) {
-
-                            return (
-                                existingItem.id ===
-                                editingId
-                            );
-
-                        }
-                    );
-
-
-                if (index < 0) {
-
-                    setStatus(
-                        "formStatus",
-                        "No se encontró el elemento que estás editando."
-                    );
-
-                    return;
-                }
-
-
-                item.id =
-                    editingId;
-
-
-                items[index] =
-                    item;
-
-
-                setStatus(
-                    "formStatus",
-                    "Elemento actualizado."
-                );
-
-            } else {
-
-                item.id =
-                    makeId();
-
-
-                items.push(
-                    item
-                );
-
-
-                setStatus(
-                    "formStatus",
-                    "Elemento añadido."
-                );
-            }
-
-
-            saveItems();
-            renderItems();
-            generateOutput();
-
-
-            clearForm();
-        }
-    );
-
-
-    $("cancelEditButton").addEventListener(
-        "click",
-        function() {
-
-            clearForm();
-
-
-            setStatus(
-                "formStatus",
-                "Edición cancelada."
-            );
-        }
-    );
-
-
-    $("resetButton").addEventListener(
-        "click",
-        function() {
-
-            if (!items.length) {
-                return;
-            }
-
-
-            if (
-                !confirm(
-                    "¿Seguro que quieres borrar todos los elementos?"
-                )
-            ) {
-
-                return;
-            }
-
-
-            items = [];
-
-
-            saveItems();
-            renderItems();
-            generateOutput();
-
-
-            clearForm();
-        }
-    );
-
-
-    $("copyButton").addEventListener(
-        "click",
-        async function() {
-
-            const value =
-                $("output").value;
-
-
-            try {
-
-                await navigator.clipboard.writeText(
-                    value
-                );
-
-
-                setStatus(
-                    "outputStatus",
-                    "HTML copiado al portapapeles."
-                );
-
-            } catch (error) {
-
-                $("output").select();
-
-
-                document.execCommand(
-                    "copy"
-                );
-
-
-                setStatus(
-                    "outputStatus",
-                    "HTML copiado."
-                );
-            }
-        }
-    );
-
-
-    $("downloadButton").addEventListener(
-        "click",
-        function() {
-
-            const value =
-                $("output").value;
-
-
-            const blob =
-                new Blob(
-                    [value],
-                    {
-                        type:
-                            "text/html;charset=utf-8"
-                    }
-                );
-
-
-            const url =
-                URL.createObjectURL(
-                    blob
-                );
-
-
-            const link =
-                document.createElement(
-                    "a"
-                );
-
-
-            link.href =
-                url;
-
-
-            link.download =
-                "tiny-photos.html";
-
-
-            document.body.appendChild(
-                link
-            );
-
-
-            link.click();
-
-
-            link.remove();
-
-
-            URL.revokeObjectURL(
-                url
-            );
-        }
-    );
-
 
     $("importButton").addEventListener(
         "click",
